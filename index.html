@@ -42,6 +42,64 @@
       user-select: none;
     }
 
+    /* ── TELA DE LOGIN ── */
+    #login-screen {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: radial-gradient(circle at center, #1e293b 0%, #070a12 100%);
+      z-index: 20000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .login-card {
+      background: rgba(18, 25, 41, 0.95);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 28px 24px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.7);
+      backdrop-filter: blur(12px);
+      text-align: center;
+    }
+    .login-logo {
+      width: 56px; height: 56px;
+      background: linear-gradient(135deg, #2563eb, #3b82f6);
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px;
+      margin: 0 auto 14px;
+      box-shadow: 0 4px 14px rgba(59,130,246,0.4);
+    }
+    .login-title { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+    .login-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 20px; }
+    .login-input-group { text-align: left; margin-bottom: 14px; }
+    .login-input-group label { display: block; font-size: 11px; font-weight: 600; color: #cbd5e1; margin-bottom: 4px; }
+    .login-input-group input {
+      width: 100%; background: #080d1a; border: 1px solid var(--border-color);
+      border-radius: 8px; padding: 10px 12px; color: #fff; font-size: 13px; outline: none;
+    }
+    .login-input-group input:focus { border-color: var(--accent-blue); }
+    .btn-login {
+      width: 100%; background: linear-gradient(135deg, #2563eb, #3b82f6);
+      color: #fff; border: none; padding: 12px; border-radius: 8px;
+      font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 8px;
+      box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+    }
+    .btn-login:active { transform: scale(0.98); }
+    .quick-users-box {
+      margin-top: 18px; padding-top: 14px; border-top: 1px dashed var(--border-color); text-align: left;
+    }
+    .quick-user-btn {
+      background: #0d1527; border: 1px solid var(--border-color); color: #cbd5e1;
+      padding: 6px 10px; border-radius: 6px; font-size: 11px; margin-top: 6px;
+      display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+    }
+    .quick-user-btn:hover { border-color: var(--accent-blue); color: #fff; }
+
     /* ── LOADING OVERLAY ── */
     #loading-overlay {
       position: fixed;
@@ -100,13 +158,17 @@
       background: rgba(139, 92, 246, 0.15);
       border: 1px solid rgba(139, 92, 246, 0.4);
       color: #c4b5fd;
-      padding: 2px 8px;
+      padding: 3px 8px;
       border-radius: 12px;
       font-weight: 600;
       cursor: pointer;
       display: flex;
       align-items: center;
       gap: 4px;
+    }
+    .btn-logout {
+      background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.4); color: #fca5a5;
+      padding: 2px 6px; border-radius: 4px; font-size: 9px; cursor: pointer; margin-left: 4px;
     }
 
     /* Barra de Busca */
@@ -149,154 +211,215 @@
       display: flex; align-items: center; gap: 4px;
       cursor: pointer; flex-shrink: 0;
     }
-    .btn-tb.active { background: var(--accent-blue); border-color: var(--accent-blue); color: #fff; }
+    .btn-tb.active {
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
+      color: #fff;
+    }
     .select-tb {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       color: var(--text-main);
-      padding: 5px 7px;
+      padding: 4px 6px;
       border-radius: 6px;
       font-size: 11px;
       outline: none; flex-shrink: 0;
     }
 
-    /* ── VIEWPORT CONTENT ── */
-    #main-content { flex: 1; position: relative; overflow: hidden; display: flex; flex-direction: column; }
-    .view-panel { display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
-    .view-panel.active { display: flex; flex-direction: column; }
+    /* ── MAIN CONTENT VIEWS ── */
+    #main-content { flex: 1; position: relative; overflow: hidden; }
+    .view-panel {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      display: none; flex-direction: column; overflow: hidden;
+    }
+    .view-panel.active { display: flex; }
 
-    /* ── MAP VIEW ── */
-    #map-container { width: 100%; height: 100%; background: #0b0f19; position: relative; }
-    #map { width: 100%; height: 100%; }
+    #map-container { position: relative; width: 100%; height: 100%; }
+    #map { width: 100%; height: 100%; background: #070a12; }
+    .fab-gps {
+      position: absolute; bottom: 20px; right: 16px; z-index: 999;
+      width: 44px; height: 44px; background: var(--accent-blue); color: #fff;
+      border: none; border-radius: 50%; font-size: 20px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 12px rgba(59,130,246,0.5); cursor: pointer;
+    }
 
-    /* ── LIST VIEW ── */
-    #list-container { flex: 1; overflow-y: auto; padding: 10px 12px 70px; -webkit-overflow-scrolling: touch; }
-    .list-summary { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-    
+    /* ── LISTA DE PRÓXIMOS ── */
+    #list-container { flex: 1; overflow-y: auto; padding: 10px; }
+    .list-summary {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 8px 10px; font-size: 11px; color: var(--text-muted);
+    }
     .client-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      padding: 10px 12px;
-      margin-bottom: 8px;
+      background: var(--bg-card); border: 1px solid var(--border-color);
+      border-radius: 10px; padding: 10px 12px; margin-bottom: 8px;
     }
     .card-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
-    .client-title { font-size: 13px; font-weight: 700; color: #fff; line-height: 1.3; }
-    .client-sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
-    .dist-badge { background: rgba(59, 130, 246, 0.15); border: 1px solid var(--accent-blue); color: #60a5fa; font-weight: 700; font-size: 10px; padding: 2px 7px; border-radius: 10px; white-space: nowrap; }
+    .client-title { font-size: 13px; font-weight: 700; color: #fff; }
+    .client-sub { font-size: 10px; color: var(--text-muted); }
+    .dist-badge { font-size: 10px; font-weight: 700; color: var(--accent-blue); background: rgba(59,130,246,0.12); padding: 2px 6px; border-radius: 4px; white-space: nowrap; }
     .card-body-row { font-size: 11px; color: #cbd5e1; margin-top: 3px; display: flex; align-items: center; gap: 4px; }
-    .card-actions { display: flex; gap: 4px; margin-top: 8px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.06); flex-wrap: wrap; }
-    
+    .card-actions { display: flex; gap: 4px; margin-top: 8px; flex-wrap: wrap; }
     .act-btn {
-      flex: 1; min-width: 60px; padding: 5px 3px; border-radius: 6px;
-      border: 1px solid var(--border-color); background: #080d1a;
-      color: var(--text-main); font-size: 10px; font-weight: 600;
-      display: flex; align-items: center; justify-content: center; gap: 3px;
-      text-decoration: none; cursor: pointer;
+      padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 600;
+      border: none; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 3px;
     }
-    .act-btn.maps { color: #60a5fa; border-color: rgba(59, 130, 246, 0.4); }
-    .act-btn.waze { color: #34d399; border-color: rgba(16, 185, 129, 0.4); }
-    .act-btn.call { color: #fbbf24; border-color: rgba(245, 158, 11, 0.4); }
-    .act-btn.wa { color: #4ade80; border-color: rgba(74, 222, 128, 0.4); }
-    .act-btn.dossier { color: #f472b6; border-color: rgba(244, 114, 182, 0.4); background: rgba(236, 72, 153, 0.12); }
-    .act-btn.log { color: #a78bfa; border-color: rgba(167, 139, 250, 0.4); background: rgba(139, 92, 246, 0.12); }
+    .act-btn.dossier { background: #334155; color: #fff; }
+    .act-btn.maps { background: #2563eb; color: #fff; }
+    .act-btn.waze { background: #0284c7; color: #fff; }
+    .act-btn.call { background: #059669; color: #fff; }
+    .act-btn.wa { background: #16a34a; color: #fff; }
+    .act-btn.log { background: var(--accent-purple); color: #fff; }
 
-    /* ── MODAL FULL FICHA DO CLIENTE ── */
-    #modal-dossier {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(6px);
-      z-index: 6000; display: none; align-items: center; justify-content: center;
-      padding: 10px;
+    /* ── RADAR FUTURISTA HUD ── */
+    #radar-view-container {
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+      background: radial-gradient(circle at center, #0b1329 0%, #030611 100%);
+      padding: 12px; overflow-y: auto; position: relative;
     }
-    #modal-dossier.active { display: flex; }
-    .dossier-box {
-      background: #0f172a; border: 1px solid var(--border-color);
-      border-radius: 16px; width: 100%; max-width: 650px; max-height: 90vh;
-      display: flex; flex-direction: column; overflow: hidden;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.7);
+    .radar-canvas-wrap {
+      position: relative; width: 320px; height: 320px; margin: 10px auto; flex-shrink: 0;
     }
-    .dossier-header {
-      background: #090d16; padding: 14px 16px; border-bottom: 1px solid var(--border-color);
-      display: flex; justify-content: space-between; align-items: flex-start;
+    #radar-canvas {
+      width: 320px; height: 320px; border-radius: 50%;
+      background: radial-gradient(circle, #091224 0%, #030712 100%);
+      box-shadow: 0 0 30px rgba(59, 130, 246, 0.25), inset 0 0 20px rgba(0,0,0,0.8);
+      border: 2px solid rgba(59, 130, 246, 0.4);
     }
-    .dossier-tabs {
-      display: flex; background: #090d16; border-bottom: 1px solid var(--border-color);
-      overflow-x: auto; flex-shrink: 0;
+    .radar-compass-n { position: absolute; top: 4px; left: 50%; transform: translateX(-50%); font-size: 11px; font-weight: 900; color: #60a5fa; }
+    .radar-compass-s { position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); font-size: 11px; font-weight: 900; color: #64748b; }
+    .radar-compass-w { position: absolute; left: 6px; top: 50%; transform: translateY(-50%); font-size: 11px; font-weight: 900; color: #64748b; }
+    .radar-compass-e { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); font-size: 11px; font-weight: 900; color: #64748b; }
+    
+    .radar-hud-card {
+      width: 100%; max-width: 440px; background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--border-color); border-radius: 12px; padding: 12px; margin-top: 6px;
+      backdrop-filter: blur(8px);
     }
-    .dtab {
-      padding: 10px 14px; font-size: 11px; font-weight: 600; color: var(--text-muted);
-      border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap;
+    .radar-stats-grid {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; text-align: center; margin-bottom: 10px;
     }
-    .dtab.active { color: var(--accent-blue); border-bottom-color: var(--accent-blue); background: rgba(59,130,246,0.1); }
-    .dossier-body { padding: 16px; overflow-y: auto; flex: 1; font-size: 12px; color: #cbd5e1; }
-    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 12px; }
-    .info-item { background: #162032; padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); }
-    .info-item label { font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 2px; }
-    .info-item val { font-size: 12px; font-weight: 600; color: #fff; word-break: break-word; }
+    .radar-stat-box { background: #070d19; border: 1px solid #1e293b; padding: 6px; border-radius: 8px; }
+    .radar-stat-val { font-size: 14px; font-weight: 800; color: var(--accent-blue); }
+    .radar-stat-lbl { font-size: 9px; color: var(--text-muted); }
 
-    /* ── MODAL VISITA & FOTO ── */
+    /* ── BOTTOM NAV ── */
+    #bottom-nav {
+      height: var(--nav-height); background: #04060c; border-top: 1px solid var(--border-color);
+      display: flex; justify-content: space-around; align-items: center; flex-shrink: 0; z-index: 1000;
+    }
+    .nav-item {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      color: var(--text-muted); font-size: 9px; font-weight: 600; width: 14%; height: 100%;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .nav-item .icon { font-size: 18px; margin-bottom: 2px; }
+    .nav-item.active { color: var(--accent-blue); }
+
+    /* MODAL SHEETS & DOSSIER */
     .modal-sheet {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px);
-      z-index: 5000; display: none; align-items: flex-end; justify-content: center;
+      background: rgba(0,0,0,0.7); z-index: 9000; display: none;
+      align-items: flex-end; backdrop-filter: blur(4px);
     }
     .modal-sheet.active { display: flex; }
     .sheet-content {
-      background: #121929; border-top-left-radius: 20px; border-top-right-radius: 20px;
-      width: 100%; max-width: 550px; max-height: 85vh; overflow-y: auto; padding: 16px;
+      background: #0f172a; border-top-left-radius: 16px; border-top-right-radius: 16px;
+      width: 100%; max-height: 85vh; overflow-y: auto; padding: 16px; border-top: 1px solid var(--border-color);
+    }
+
+    #modal-dossier {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.75); z-index: 9500; display: none;
+      align-items: flex-end; backdrop-filter: blur(6px);
+    }
+    #modal-dossier.active { display: flex; }
+    .dossier-box {
+      background: #090d16; border-top-left-radius: 18px; border-top-right-radius: 18px;
+      width: 100%; max-height: 90vh; display: flex; flex-direction: column;
       border-top: 1px solid var(--border-color);
     }
-    .form-group { margin-bottom: 10px; }
-    .form-group label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 4px; font-weight: 600; }
+    .dossier-header { padding: 14px 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+    .dossier-tabs { display: flex; border-bottom: 1px solid var(--border-color); background: #04060c; overflow-x: auto; }
+    .dtab { padding: 10px 14px; font-size: 11px; font-weight: 600; color: var(--text-muted); cursor: pointer; white-space: nowrap; }
+    .dtab.active { color: var(--accent-pink); border-bottom: 2px solid var(--accent-pink); background: rgba(236,72,153,0.08); }
+    .dossier-body { padding: 14px; overflow-y: auto; flex: 1; }
+
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 11px; }
+    @media (max-width: 480px) { .info-grid { grid-template-columns: 1fr; } }
+    .info-item { background: #121929; border: 1px solid #1e293b; padding: 8px; border-radius: 8px; }
+    .info-item label { display: block; font-size: 9px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin-bottom: 2px; }
+    .info-item val { font-size: 11px; color: #fff; font-weight: 500; word-break: break-word; }
+
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 11px; font-weight: 600; color: #cbd5e1; margin-bottom: 4px; }
     .form-group input, .form-group select, .form-group textarea {
-      width: 100%; background: #090d16; border: 1px solid var(--border-color);
-      border-radius: 8px; padding: 8px 10px; color: #fff; font-size: 12px; outline: none;
+      width: 100%; background: #121929; border: 1px solid var(--border-color);
+      border-radius: 8px; padding: 8px; color: #fff; font-size: 12px; outline: none;
     }
-    .btn-submit { width: 100%; background: var(--accent-blue); color: #fff; border: none; padding: 10px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; margin-top: 8px; }
-
-    /* ── BOTTOM NAVIGATION ── */
-    #bottom-nav {
-      height: var(--nav-height); background: #04060c; border-top: 1px solid var(--border-color);
-      display: flex; position: fixed; bottom: 0; left: 0; right: 0; z-index: 2000;
-    }
-    .nav-item {
-      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-      color: var(--text-muted); font-size: 9px; font-weight: 600; gap: 2px; cursor: pointer;
-    }
-    .nav-item .icon { font-size: 16px; }
-    .nav-item.active { color: var(--accent-blue); }
-
-    .fab-gps {
-      position: absolute; right: 14px; bottom: 16px; width: 46px; height: 46px;
-      border-radius: 50%; background: var(--accent-blue); color: #fff; display: flex;
-      align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 4px 14px rgba(0,0,0,0.4);
-      z-index: 1500; border: 2px solid rgba(255,255,255,0.2); cursor: pointer;
+    .btn-submit {
+      width: 100%; background: var(--accent-blue); color: #fff; border: none;
+      padding: 10px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer;
     }
   </style>
 </head>
 <body>
 
-  <!-- LOADING INITIAL OVERLAY -->
-  <div id="loading-overlay">
-    <div class="spinner"></div>
-    <h3 style="font-size: 16px; color: #fff; margin-bottom: 6px;" id="lbl-load-title">Inicializando Banco Offline...</h3>
-    <p style="font-size: 12px; color: var(--text-muted);" id="lbl-load-sub">Carregando dataset de 48.182 clientes em alta velocidade</p>
+  <!-- TELA DE LOGIN -->
+  <div id="login-screen">
+    <div class="login-card">
+      <div class="login-logo">🗺️</div>
+      <div class="login-title">Mapa Interativo Pro</div>
+      <div class="login-sub">Sistema SaaS Comercial & Inteligência de Campo</div>
+
+      <form id="form-login">
+        <div class="login-input-group">
+          <label>Usuário *</label>
+          <input type="text" id="login-username" required placeholder="Digite seu usuário..." autocomplete="username"/>
+        </div>
+        <div class="login-input-group">
+          <label>Senha *</label>
+          <input type="password" id="login-password" required placeholder="Digite sua senha..." autocomplete="current-password"/>
+        </div>
+        <button type="submit" class="btn-login">🔒 Entrar no Sistema</button>
+      </form>
+
+      <div class="quick-users-box">
+        <div style="font-size:10px; color:var(--text-muted); font-weight:bold; margin-bottom:4px;">🔑 Acesso Rápido para Teste:</div>
+        <div class="quick-user-btn" onclick="fillLogin('triunfante', 'abc123')">
+          <span>👑 <b>triunfante</b> (Master / Brasil)</span>
+          <span style="color:var(--accent-green); font-size:9px;">Senha: abc123</span>
+        </div>
+        <div class="quick-user-btn" onclick="fillLogin('TCG', 'abc123')">
+          <span>🏢 <b>TCG</b> (Vendedor / Filial TCG)</span>
+          <span style="color:var(--accent-green); font-size:9px;">Senha: abc123</span>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <!-- HEADER -->
+  <!-- LOADING OVERLAY -->
+  <div id="loading-overlay" style="display:none;">
+    <div class="spinner"></div>
+    <div style="font-size:16px; font-weight:bold; color:#fff;" id="lbl-load-title">Inicializando Banco de Dados...</div>
+    <div style="font-size:11px; color:var(--text-muted); margin-top:6px;">Carregando 48.182 clientes via IndexedDB...</div>
+  </div>
+
+  <!-- HEADER DA APLICAÇÃO -->
   <header id="app-header">
     <div class="header-top">
       <div class="brand">
         <div class="brand-icon">🗺️</div>
         <div>
           <div>Mapa Interativo Pro</div>
-          <div style="font-size: 9px; color: var(--text-muted); font-weight: normal;" id="lbl-total-count">Carregando...</div>
+          <div id="lbl-total-count" style="font-size: 9px; color: var(--accent-green); font-weight: normal;">48.182 clientes</div>
         </div>
       </div>
-      <div style="display: flex; gap: 6px; align-items: center;">
-        <div id="btn-user-switch" class="user-pill" onclick="openUserModal()">
-          <span>👤</span> <span id="lbl-user-name">Admin</span>
+      <div style="display:flex; align-items:center; gap:4px;">
+        <div class="user-pill" onclick="openUserModal()">
+          <span>👤</span><span id="lbl-user-name">Usuário</span>
         </div>
+        <button class="btn-logout" onclick="logoutUser()" title="Sair do Sistema">🚪 Sair</button>
       </div>
     </div>
     
@@ -347,7 +470,7 @@
     <section id="view-map" class="view-panel active">
       <div id="map-container">
         <div id="map"></div>
-        <button id="fab-recenter" class="fab-gps">🎯</button>
+        <button id="fab-recenter" class="fab-gps" onclick="triggerGPS()">🎯</button>
       </div>
     </section>
 
@@ -362,11 +485,36 @@
       </div>
     </section>
 
-    <!-- VIEW 3: RADAR -->
+    <!-- VIEW 3: RADAR FUTURISTA -->
     <section id="view-radar" class="view-panel">
-      <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; padding:20px; background:#04070f;">
-        <canvas id="radar-canvas" width="340" height="340" style="border-radius:50%; background:radial-gradient(circle, #0f172a 0%, #030712 100%);"></canvas>
-        <div style="position:absolute; bottom:20px; background:rgba(15,23,42,0.85); border:1px solid var(--border-color); padding:8px 16px; border-radius:20px; font-size:12px; backdrop-filter:blur(8px); color:var(--accent-blue); font-weight:600;" id="radar-lbl-status">Radar de Proximidade</div>
+      <div id="radar-view-container">
+        <div class="radar-canvas-wrap">
+          <canvas id="radar-canvas" width="320" height="320"></canvas>
+          <div class="radar-compass-n">N</div>
+          <div class="radar-compass-s">S</div>
+          <div class="radar-compass-w">O</div>
+          <div class="radar-compass-e">L</div>
+        </div>
+
+        <div class="radar-hud-card">
+          <div class="radar-stats-grid">
+            <div class="radar-stat-box">
+              <div class="radar-stat-val" id="hud-stat-total">0</div>
+              <div class="radar-stat-lbl">No Raio</div>
+            </div>
+            <div class="radar-stat-box">
+              <div class="radar-stat-val" style="color:var(--accent-green);" id="hud-stat-target">0</div>
+              <div class="radar-stat-lbl">CNAE Alvo</div>
+            </div>
+            <div class="radar-stat-box">
+              <div class="radar-stat-val" style="color:var(--accent-pink);" id="hud-stat-closest">0 m</div>
+              <div class="radar-stat-lbl">Mais Próximo</div>
+            </div>
+          </div>
+          <div id="radar-lbl-status" style="font-size:11px; color:#60a5fa; text-align:center; font-weight:600;">Radar ativado em tempo real</div>
+        </div>
+
+        <div style="width:100%; max-width:440px; margin-top:10px;" id="radar-closest-list"></div>
       </div>
     </section>
 
@@ -392,18 +540,19 @@
       </div>
     </section>
 
-    <!-- VIEW 6: GOOGLE ENRICHMENT -->
+    <!-- VIEW 6: GOOGLE SEARCH & PROSPECÇÃO -->
     <section id="view-google" class="view-panel">
       <div style="padding: 14px; overflow-y: auto; flex: 1;">
-        <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent-blue);">🌐 Pesquisar no Google Maps & Lugares</h3>
-        <div style="background: rgba(59,130,246,0.1); padding: 12px; border-radius: 10px; border: 1px solid rgba(59,130,246,0.3); margin-bottom: 16px;">
-          <label style="color: #60a5fa; font-size: 11px; font-weight: bold; display: block; margin-bottom: 4px;">🔍 Buscar Empresa no Google / OpenStreetMap</label>
+        <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent-blue);">🌐 Pesquisar no Google Maps & Prospecção Externa</h3>
+        <div style="background: rgba(59,130,246,0.1); padding: 14px; border-radius: 12px; border: 1px solid rgba(59,130,246,0.3); margin-bottom: 16px;">
+          <label style="color: #60a5fa; font-size: 11px; font-weight: bold; display: block; margin-bottom: 6px;">🔍 Buscar Estabelecimentos / Prospects no Google Maps</label>
           <div style="display: flex; gap: 6px;">
-            <input type="text" id="inp-google-query" style="flex:1; background:#090d16; border:1px solid var(--border-color); padding:8px; border-radius:6px; color:#fff; font-size:12px;" placeholder="Ex: Supermercado Toledo PR"/>
-            <button id="btn-search-google" style="background: var(--accent-blue); color:#fff; border:none; padding: 0 12px; border-radius: 6px; font-weight: bold; cursor: pointer;">Buscar</button>
+            <input type="text" id="inp-google-query" style="flex:1; background:#090d16; border:1px solid var(--border-color); padding:10px; border-radius:8px; color:#fff; font-size:12px;" placeholder="Ex: Supermercado em Toledo PR ou Padaria em Cascavel"/>
+            <button id="btn-search-google" onclick="executeGoogleSearch()" style="background: var(--accent-blue); color:#fff; border:none; padding: 0 16px; border-radius: 8px; font-weight: bold; cursor: pointer;">Buscar</button>
           </div>
-          <div id="google-results-box" style="margin-top: 10px; font-size: 12px;"></div>
+          <div style="font-size:10px; color:var(--text-muted); margin-top:6px;">Retorna lugares reais do Google Maps / OpenStreetMap com endereço, mapa e botão de prospect.</div>
         </div>
+        <div id="google-results-box"></div>
       </div>
     </section>
 
@@ -417,7 +566,15 @@
           <form id="form-user-admin">
             <div class="form-group">
               <label>Nome do Usuário *</label>
-              <input type="text" id="uadmin-name" required placeholder="Ex: Vendedor João (Toledo)"/>
+              <input type="text" id="uadmin-name" required placeholder="Ex: Vendedor TCG"/>
+            </div>
+            <div class="form-group">
+              <label>Nome de Usuário (Login) *</label>
+              <input type="text" id="uadmin-username" required placeholder="Ex: TCG"/>
+            </div>
+            <div class="form-group">
+              <label>Senha de Acesso *</label>
+              <input type="text" id="uadmin-password" required placeholder="Ex: abc123"/>
             </div>
             <div class="form-group">
               <label>Escopo Geográfico de Clientes *</label>
@@ -431,7 +588,7 @@
               <select id="uadmin-filial-val"></select>
             </div>
             <div class="form-group">
-              <label>Módulos Permiti dos para este Usuário:</label>
+              <label>Módulos Permitidos para este Usuário:</label>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 11px; margin-top: 4px;">
                 <label><input type="checkbox" id="chk-mod-map" checked/> 🗺️ Mapa</label>
                 <label><input type="checkbox" id="chk-mod-list" checked/> 📋 Próximos</label>
@@ -441,12 +598,12 @@
                 <label><input type="checkbox" id="chk-mod-google" checked/> 🌐 Google</label>
               </div>
             </div>
-            <button type="submit" class="btn-submit" style="background: var(--accent-orange);">💾 Salvar Permissões do Usuário</button>
+            <button type="submit" class="btn-submit" style="background: var(--accent-orange);">💾 Salvar Usuário & Permissões</button>
           </form>
         </div>
 
         <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px;">
-          <h4 style="font-size: 13px; color: #fff; margin-bottom: 8px;">📋 Usuários Cadastrados</h4>
+          <h4 style="font-size: 13px; color: #fff; margin-bottom: 8px;">📋 Usuários Cadastrados no Sistema</h4>
           <div id="users-list-box"></div>
         </div>
       </div>
@@ -629,13 +786,18 @@
 
   <!-- LÓGICA PRINCIPAL DO APP -->
   <script>
+    const DEFAULT_USERS = [
+      { id: 'triunfante', username: 'triunfante', pass: 'abc123', name: 'Diretoria Triunfante (Master)', scope: 'BRASIL', filial: '', role: 'admin', mods: ['map','list','radar','photos','visitas','google','admin'] },
+      { id: 'TCG', username: 'TCG', pass: 'abc123', name: 'Vendedor TCG (Filial TCG)', scope: 'FILIAL', filial: 'TCG', role: 'vendedor', mods: ['map','list','radar','photos','visitas','google'] }
+    ];
+
     const STATE = {
       rawClients: [],
       activeClients: [],
       photoPins: [],
       visitLogs: [],
-      users: [],
-      currentUser: { id: 'admin', name: 'Administrador Master', scope: 'BRASIL', filial: '', mods: ['map','list','radar','photos','visitas','google','admin'] },
+      users: DEFAULT_USERS,
+      currentUser: null,
       userPos: null,
       map: null,
       markerCluster: null,
@@ -644,7 +806,9 @@
       activeFilial: "",
       activeStatus: "ATIVO",
       activeCnae: "TARGET",
-      searchTerm: ""
+      searchTerm: "",
+      radarAnimId: null,
+      radarSweepAngle: 0
     };
 
     const CIDADES_PARANA = [
@@ -661,23 +825,21 @@
     });
 
     function initApp() {
-      // 1. IndexedDB Cache-First Engine
-      initIndexedDBData();
-    }
-
-    function initIndexedDBData() {
-      const lblTitle = document.getElementById('lbl-load-title');
-      
-      // Carrega usuários e fotos salvos
+      // Carrega lista de usuários salvos
       try {
         const u = localStorage.getItem('MAPA_USERS');
-        if (u) STATE.users = JSON.parse(u);
-        else {
-          STATE.users = [
-            { id: 'admin', name: 'Administrador Master', scope: 'BRASIL', filial: '', mods: ['map','list','radar','photos','visitas','google','admin'] },
-            { id: 'vendedor_toledo', name: 'Vendedor Toledo (Filial ABC1)', scope: 'FILIAL', filial: 'ABC1', mods: ['map','list','radar','photos','visitas'] },
-            { id: 'apenas_mapa', name: 'Consulta (Apenas Mapa)', scope: 'BRASIL', filial: '', mods: ['map'] }
-          ];
+        if (u) {
+          const parsed = JSON.parse(u);
+          // Garanta que os usuários padrão triunfante e TCG existam
+          DEFAULT_USERS.forEach(def => {
+            if (!parsed.find(x => x.username.toLowerCase() === def.username.toLowerCase())) {
+              parsed.push(def);
+            }
+          });
+          STATE.users = parsed;
+        } else {
+          STATE.users = DEFAULT_USERS;
+          localStorage.setItem('MAPA_USERS', JSON.stringify(DEFAULT_USERS));
         }
 
         const p = localStorage.getItem('MAPA_PHOTO_PINS');
@@ -687,12 +849,64 @@
         if (v) STATE.visitLogs = JSON.parse(v);
       } catch (e) {}
 
+      // Verifica se há usuário logado na sessão
+      const sessionUser = localStorage.getItem('MAPA_LOGGED_USER');
+      if (sessionUser) {
+        try {
+          STATE.currentUser = JSON.parse(sessionUser);
+          document.getElementById('login-screen').style.display = 'none';
+          document.getElementById('loading-overlay').style.display = 'flex';
+          startLoadingData();
+          return;
+        } catch(e) {}
+      }
+      
+      // Se não estiver logado, exige login
+      document.getElementById('login-screen').style.display = 'flex';
+    }
+
+    // Form de Login
+    document.getElementById('form-login').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const userVal = document.getElementById('login-username').value.trim();
+      const passVal = document.getElementById('login-password').value.trim();
+
+      const found = STATE.users.find(u => 
+        (u.username.toLowerCase() === userVal.toLowerCase() || u.id.toLowerCase() === userVal.toLowerCase()) && u.pass === passVal
+      );
+
+      if (found) {
+        STATE.currentUser = found;
+        localStorage.setItem('MAPA_LOGGED_USER', JSON.stringify(found));
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('loading-overlay').style.display = 'flex';
+        startLoadingData();
+      } else {
+        alert('Usuário ou senha incorretos!\n\nUse:\nUsuário: triunfante | Senha: abc123\nou\nUsuário: TCG | Senha: abc123');
+      }
+    });
+
+    function fillLogin(u, p) {
+      document.getElementById('login-username').value = u;
+      document.getElementById('login-password').value = p;
+    }
+
+    function logoutUser() {
+      if (confirm('Deseja realmente sair do sistema?')) {
+        localStorage.removeItem('MAPA_LOGGED_USER');
+        STATE.currentUser = null;
+        location.reload();
+      }
+    }
+
+    function startLoadingData() {
+      const lblTitle = document.getElementById('lbl-load-title');
       if (window.CLIENTES_PRELOAD && Array.isArray(window.CLIENTES_PRELOAD)) {
         STATE.rawClients = window.CLIENTES_PRELOAD;
         onDataReady();
       } else {
         lblTitle.innerText = "Carregando clientes...";
-        setTimeout(onDataReady, 500);
+        setTimeout(onDataReady, 400);
       }
     }
 
@@ -705,6 +919,7 @@
       renderPhotoPins();
       renderVisitHistory();
       renderUsersAdmin();
+      initRadarAnimation();
     }
 
     function populateFiliaisDropdown() {
@@ -723,10 +938,11 @@
     // ── PERMISSÕES E ESCOPO DO USUÁRIO (RBAC) ──
     function applyUserPermissions() {
       const u = STATE.currentUser;
-      document.getElementById('lbl-user-name').innerText = u.name;
+      if (!u) return;
+      document.getElementById('lbl-user-name').innerText = u.name || u.username;
 
       // Oculta abas não permitidas
-      const mods = u.mods || ['map','list'];
+      const mods = u.mods || ['map','list','radar','photos','visitas','google'];
       const navIds = ['map','list','radar','photos','visitas','google','admin'];
       
       navIds.forEach(m => {
@@ -749,19 +965,24 @@
     }
 
     function openUserModal() {
-      let promptMsg = "Selecione o Usuário para alternar perfil:\n\n";
-      STATE.users.forEach((u, idx) => {
-        promptMsg += `${idx + 1}. ${u.name} [Escopo: ${u.scope}]\n`;
-      });
-      const choice = prompt(promptMsg, "1");
-      if (choice && !isNaN(choice)) {
-        const idx = parseInt(choice) - 1;
-        if (STATE.users[idx]) {
-          STATE.currentUser = STATE.users[idx];
-          applyUserPermissions();
-          applyFilters();
-          alert(`Perfil alterado para: ${STATE.currentUser.name}`);
+      if (STATE.currentUser && STATE.currentUser.role === 'admin') {
+        let promptMsg = "Alternar Perfil de Teste Rápido:\n\n";
+        STATE.users.forEach((u, idx) => {
+          promptMsg += `${idx + 1}. ${u.name} [Escopo: ${u.scope}]\n`;
+        });
+        const choice = prompt(promptMsg, "1");
+        if (choice && !isNaN(choice)) {
+          const idx = parseInt(choice) - 1;
+          if (STATE.users[idx]) {
+            STATE.currentUser = STATE.users[idx];
+            localStorage.setItem('MAPA_LOGGED_USER', JSON.stringify(STATE.currentUser));
+            applyUserPermissions();
+            applyFilters();
+            alert(`Perfil alternado para: ${STATE.currentUser.name}`);
+          }
         }
+      } else {
+        alert(`Logado como: ${STATE.currentUser.name}\nEscopo: ${STATE.currentUser.scope} ${STATE.currentUser.filial ? '('+STATE.currentUser.filial+')' : ''}`);
       }
     }
 
@@ -809,7 +1030,7 @@
 
       if (STATE.map) {
         if (!STATE.userMarker) {
-          const icon = L.divIcon({ className: 'custom-user-pin', html: `<div style="width:18px;height:18px;background:#3b82f6;border:3px solid #fff;border-radius:50%;box-shadow:0 0 12px #3b82f6;"></div>`, iconSize: [18,18], iconAnchor: [9,9] });
+          const icon = L.divIcon({ className: 'custom-user-pin', html: `<div style="width:20px;height:20px;background:#3b82f6;border:3px solid #fff;border-radius:50%;box-shadow:0 0 16px #3b82f6;"></div>`, iconSize: [20,20], iconAnchor: [10,10] });
           STATE.userMarker = L.marker([lat, lng], { icon, zIndexOffset: 1000 }).addTo(STATE.map);
           STATE.map.setView([lat, lng], 14);
         } else {
@@ -826,6 +1047,17 @@
       const dLon = (lon2 - lon1) * Math.PI / 180;
       const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
       return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+    }
+
+    function calculateBearing(lat1, lon1, lat2, lon2) {
+      const y = Math.sin((lon2 - lon1) * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180);
+      const x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180) -
+                Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos((lon2 - lon1) * Math.PI / 180);
+      const brng = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+      
+      const dirs = ['N', 'NE', 'L', 'SE', 'S', 'SO', 'O', 'NO'];
+      const index = Math.round(brng / 45) % 8;
+      return { deg: Math.round(brng), dir: dirs[index] };
     }
 
     function formatDistance(distKm) {
@@ -863,16 +1095,19 @@
         }
 
         let distKm = 99999;
+        let bearing = { deg: 0, dir: 'N' };
         if (userLat !== null && userLng !== null && c.lt !== null && c.lg !== null) {
           const maxDelta = (radius === 9999) ? 180 : (radius * 0.015);
           if (Math.abs(c.lt - userLat) <= maxDelta && Math.abs(c.lg - userLng) <= maxDelta) {
             distKm = haversineDistance(userLat, userLng, c.lt, c.lg);
+            bearing = calculateBearing(userLat, userLng, c.lt, c.lg);
           } else if (radius !== 9999) continue;
         }
 
         if (radius !== 9999 && userLat !== null && distKm > radius) continue;
 
         c.distKm = distKm;
+        c.bearing = bearing;
         filtered.push(c);
       }
 
@@ -880,12 +1115,13 @@
 
       STATE.activeClients = filtered;
 
-      document.getElementById('lbl-total-count').innerText = `${filtered.length.toLocaleString('pt-BR')} clientes (Escopo: ${STATE.currentUser.scope})`;
-      document.getElementById('lbl-list-count').innerText = `${filtered.length.toLocaleString('pt-BR')} clientes encontrados`;
+      const scopeStr = STATE.currentUser ? STATE.currentUser.scope : 'GERAL';
+      document.getElementById('lbl-total-count').innerText = `${filtered.length.toLocaleString('pt-BR')} clientes (${scopeStr})`;
+      document.getElementById('lbl-list-count').innerText = `${filtered.length.toLocaleString('pt-BR')} clientes próximos`;
 
       renderMapMarkers();
       renderListView();
-      renderRadarView();
+      updateRadarHUD();
     }
 
     function renderMapMarkers() {
@@ -907,7 +1143,7 @@
             <span style="color:#64748b;">CNPJ: ${c.j} · Filial: ${c.f}</span><br/>
             <div style="margin-top:4px;">${c.e ? c.e + ' - ' : ''}${c.m}/${c.u}</div>
             ${c.cnae ? `<div style="font-size:10px; color:#059669; margin-top:2px;">🎯 ${c.cnae.slice(0,40)}</div>` : ''}
-            ${c.distKm < 9999 ? `<div style="margin-top:4px; font-weight:bold; color:#3b82f6;">📏 Distância: ${formatDistance(c.distKm)}</div>` : ''}
+            ${c.distKm < 9999 ? `<div style="margin-top:4px; font-weight:bold; color:#3b82f6;">📏 Distância: ${formatDistance(c.distKm)} (${c.bearing.dir})</div>` : ''}
             <div style="margin-top:8px; display:flex; gap:4px; flex-wrap:wrap;">
               <button onclick="openDossierModal('${c.id}')" style="background:#ec4899; color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">📄 Ficha Completa</button>
               <button onclick="openVisitModal('${c.id}')" style="background:#8b5cf6; color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">📝 Registrar Visita</button>
@@ -943,7 +1179,7 @@
 
       let html = '';
       list.forEach(c => {
-        const distStr = c.distKm < 9999 ? formatDistance(c.distKm) : 'Sem GPS';
+        const distStr = c.distKm < 9999 ? `${formatDistance(c.distKm)} (${c.bearing.dir})` : 'Sem GPS';
         const targetBadge = c.target ? `<span style="background:rgba(16,185,129,0.2); color:#34d399; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold;">🎯 ALVO</span>` : '';
         
         const cleanTel = c.t ? c.t.replace(/\D/g, '') : '';
@@ -978,52 +1214,223 @@
       container.innerHTML = html;
     }
 
-    function renderRadarView() {
+    // ── RADAR FUTURISTA CANVAS & ANIMATION ──
+    function initRadarAnimation() {
       const canvas = document.getElementById('radar-canvas');
+      if (!canvas) return;
+
+      function renderFrame() {
+        drawRadarCanvas();
+        STATE.radarSweepAngle = (STATE.radarSweepAngle + 0.03) % (Math.PI * 2);
+        STATE.radarAnimId = requestAnimationFrame(renderFrame);
+      }
+      if (STATE.radarAnimId) cancelAnimationFrame(STATE.radarAnimId);
+      STATE.radarAnimId = requestAnimationFrame(renderFrame);
+    }
+
+    function drawRadarCanvas() {
+      const canvas = document.getElementById('radar-canvas');
+      if (!canvas) return;
       const ctx = canvas.getContext('2d');
       const w = canvas.width; const h = canvas.height;
       const cx = w / 2; const cy = h / 2;
+      const maxR = cx - 12;
 
       ctx.clearRect(0, 0, w, h);
 
+      // Fundo militar / sci-fi
+      const bgGrad = ctx.createRadialGradient(cx, cy, 5, cx, cy, maxR);
+      bgGrad.addColorStop(0, '#09152b');
+      bgGrad.addColorStop(1, '#020612');
+      ctx.fillStyle = bgGrad;
+      ctx.beginPath(); ctx.arc(cx, cy, maxR, 0, Math.PI * 2); ctx.fill();
+
+      // Círculos concêntricos com brilho
       ctx.strokeStyle = 'rgba(59, 130, 246, 0.25)';
       ctx.lineWidth = 1;
-      [0.2, 0.4, 0.6, 0.8].forEach(rPct => {
-        ctx.beginPath(); ctx.arc(cx, cy, (w / 2 - 10) * rPct, 0, Math.PI * 2); ctx.stroke();
+      [0.25, 0.5, 0.75, 1.0].forEach(rPct => {
+        ctx.beginPath(); ctx.arc(cx, cy, maxR * rPct, 0, Math.PI * 2); ctx.stroke();
       });
 
+      // Linhas cruzadas de quadrante
+      ctx.strokeStyle = 'rgba(59, 130, 246, 0.18)';
       ctx.beginPath();
-      ctx.moveTo(cx, 10); ctx.lineTo(cx, h - 10);
-      ctx.moveTo(10, cy); ctx.lineTo(w - 10, cy);
+      ctx.moveTo(cx, cy - maxR); ctx.lineTo(cx, cy + maxR);
+      ctx.moveTo(cx - maxR, cy); ctx.lineTo(cx + maxR, cy);
       ctx.stroke();
 
-      ctx.fillStyle = '#3b82f6'; ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI * 2); ctx.fill();
+      // Varredura de Scanner (Feixe Rotativo)
+      const sweepAngle = STATE.radarSweepAngle;
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, maxR, sweepAngle - 0.45, sweepAngle);
+      ctx.closePath();
+      const sweepGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, maxR);
+      sweepGrad.addColorStop(0, 'rgba(59, 130, 246, 0.35)');
+      sweepGrad.addColorStop(1, 'rgba(16, 185, 129, 0.05)');
+      ctx.fillStyle = sweepGrad;
+      ctx.fill();
+      ctx.restore();
 
+      // Linha guia do feixe
+      ctx.strokeStyle = 'rgba(59, 130, 246, 0.8)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + Math.cos(sweepAngle) * maxR, cy + Math.sin(sweepAngle) * maxR);
+      ctx.stroke();
+
+      // Ponto Central (Sua Posição GPS)
+      ctx.fillStyle = '#3b82f6';
+      ctx.shadowColor = '#3b82f6'; ctx.shadowBlur = 10;
+      ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // Posição de Clientes
       const userLat = STATE.userPos ? STATE.userPos.lat : null;
       const userLng = STATE.userPos ? STATE.userPos.lng : null;
-
-      if (userLat === null) {
-        document.getElementById('radar-lbl-status').innerText = 'Radar: Selecione a localização GPS ou cidade';
-        return;
-      }
+      if (userLat === null) return;
 
       const radiusKm = STATE.activeRadiusKm === 9999 ? 25 : STATE.activeRadiusKm;
-      const list = STATE.activeClients.slice(0, 60);
-
-      document.getElementById('radar-lbl-status').innerText = `Radar (${radiusKm} km) · ${list.length} clientes em volta`;
+      const list = STATE.activeClients.slice(0, 80);
 
       list.forEach(c => {
         if (c.lt === null || c.lg === null) return;
         const d = c.distKm; if (d > radiusKm) return;
+
         const angle = Math.atan2((c.lg - userLng), (c.lt - userLat));
-        const distPct = (d / radiusKm);
-        const maxR = (w / 2 - 20);
+        const distPct = Math.min(1.0, d / radiusKm);
         const px = cx + Math.sin(angle) * (maxR * distPct);
         const py = cy - Math.cos(angle) * (maxR * distPct);
 
-        ctx.fillStyle = c.target ? '#10b981' : '#3b82f6';
-        ctx.beginPath(); ctx.arc(px, py, 4, 0, Math.PI * 2); ctx.fill();
+        // Desenha Blip no Radar
+        ctx.fillStyle = c.target ? '#10b981' : '#60a5fa';
+        ctx.shadowColor = c.target ? '#10b981' : '#60a5fa';
+        ctx.shadowBlur = 8;
+        ctx.beginPath(); ctx.arc(px, py, c.target ? 4.5 : 3.5, 0, Math.PI * 2); ctx.fill();
+        ctx.shadowBlur = 0;
       });
+    }
+
+    function updateRadarHUD() {
+      const userLat = STATE.userPos ? STATE.userPos.lat : null;
+      const radiusKm = STATE.activeRadiusKm === 9999 ? 25 : STATE.activeRadiusKm;
+      const list = STATE.activeClients.slice(0, 60);
+      const targetCount = list.filter(x => x.target).length;
+      const closest = list[0];
+
+      document.getElementById('hud-stat-total').innerText = list.length;
+      document.getElementById('hud-stat-target').innerText = targetCount;
+      document.getElementById('hud-stat-closest').innerText = closest && closest.distKm < 9999 ? formatDistance(closest.distKm) : '--';
+
+      const statusLbl = document.getElementById('radar-lbl-status');
+      if (userLat === null) {
+        statusLbl.innerText = '⚠️ Ative o GPS ou Selecione uma Cidade para ativar o Radar';
+      } else {
+        statusLbl.innerText = `🎯 Radar de Varredura (${radiusKm} km) · ${list.length} estabelecimentos detectados`;
+      }
+
+      // Renderiza lista compacta do Radar
+      const box = document.getElementById('radar-closest-list');
+      if (list.length === 0) {
+        box.innerHTML = `<div style="text-align:center; color:var(--text-muted); font-size:12px;">Nenhum cliente detectado no raio do radar.</div>`;
+        return;
+      }
+
+      let html = '<div style="font-size:11px; font-weight:bold; color:#cbd5e1; margin-bottom:6px;">📍 Clientes no Raio do Radar:</div>';
+      list.slice(0, 15).forEach(c => {
+        const cleanTel = c.t ? c.t.replace(/\D/g, '') : '';
+        html += `
+          <div style="background:rgba(18,25,41,0.9); border:1px solid #1e293b; border-radius:8px; padding:8px 10px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <b style="color:#fff; font-size:12px;">${c.c}</b>
+              <div style="font-size:10px; color:var(--text-muted);">${c.m}/${c.u} · CNPJ: ${c.j}</div>
+            </div>
+            <div style="text-align:right;">
+              <span style="font-size:11px; font-weight:bold; color:var(--accent-blue);">📍 ${formatDistance(c.distKm)} (${c.bearing.dir})</span>
+              <div style="margin-top:2px; display:flex; gap:4px; justify-content:flex-end;">
+                <button onclick="openDossierModal('${c.id}')" style="background:#334155; color:#fff; border:none; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold; cursor:pointer;">Ficha</button>
+                ${cleanTel ? `<a href="https://wa.me/55${cleanTel}" target="_blank" style="background:#16a34a; color:#fff; border:none; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold; text-decoration:none;">Whats</a>` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      box.innerHTML = html;
+    }
+
+    // ── BUSCA GOOGLE REAL & PROSPECÇÃO (OPENSTREETMAP / GOOGLE MAPS API) ──
+    async function executeGoogleSearch() {
+      const q = document.getElementById('inp-google-query').value.trim();
+      const box = document.getElementById('google-results-box');
+
+      if (!q) {
+        alert('Digite o nome ou segmento para buscar no Google Maps (ex: Supermercado em Toledo)');
+        return;
+      }
+
+      box.innerHTML = `
+        <div style="background:rgba(59,130,246,0.1); border:1px solid var(--accent-blue); padding:16px; border-radius:10px; text-align:center; color:#fff;">
+          <div class="spinner" style="margin: 0 auto 10px;"></div>
+          <b>🔍 Conectando ao Google Maps / OpenStreetMap...</b>
+          <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">Pesquisando estabelecimentos para "${q}"...</div>
+        </div>
+      `;
+
+      try {
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=12&countrycodes=br&addressdetails=1`;
+        const resp = await fetch(url);
+        const data = await resp.json();
+
+        if (!data || data.length === 0) {
+          box.innerHTML = `<div style="background:#121929; padding:14px; border-radius:10px; color:var(--text-muted); text-align:center;">Nenhum novo lugar encontrado para "${q}". Tente buscar ex: "Supermercado Cascavel PR".</div>`;
+          return;
+        }
+
+        let html = `<div style="font-size:12px; font-weight:bold; color:var(--accent-green); margin-bottom:8px;">✅ ${data.length} Lugares Encontrados no Google / OSM Maps:</div>`;
+        data.forEach(item => {
+          const lat = parseFloat(item.lat);
+          const lon = parseFloat(item.lon);
+          const name = item.display_name.split(',')[0] || item.name || 'Estabelecimento Comercial';
+          const addr = item.display_name;
+
+          html += `
+            <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:12px; margin-bottom:8px;">
+              <b style="color:#fff; font-size:13px;">🌐 ${name}</b>
+              <div style="font-size:11px; color:#cbd5e1; margin-top:2px;">📍 ${addr}</div>
+              <div style="font-size:10px; color:var(--accent-blue); margin-top:2px;">GPS: ${lat.toFixed(5)}, ${lon.toFixed(5)}</div>
+              <div style="display:flex; gap:6px; margin-top:8px;">
+                <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lon}" target="_blank" class="act-btn maps">🗺️ Abrir no Google Maps</a>
+                <button onclick="addGoogleAsProspect('${name.replace(/'/g, "")}', '${addr.replace(/'/g, "")}', ${lat}, ${lon})" class="act-btn" style="background:var(--accent-pink); color:#fff;">+ Salvar como Prospect</button>
+              </div>
+            </div>
+          `;
+        });
+
+        box.innerHTML = html;
+      } catch (err) {
+        box.innerHTML = `<div style="background:rgba(239,68,68,0.1); border:1px solid var(--accent-red); padding:12px; border-radius:10px; color:#fca5a5;">Erro ao realizar busca online: ${err.message}</div>`;
+      }
+    }
+
+    function addGoogleAsProspect(title, address, lat, lng) {
+      const pin = {
+        id: 'PROSPECT_' + Date.now(),
+        img: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=200&q=80',
+        cat: '🔥 Prospect Novo',
+        title: title,
+        comments: `Prospect importado do Google Maps: ${address}`,
+        lat: lat,
+        lng: lng,
+        date: new Date().toLocaleString('pt-BR')
+      };
+
+      STATE.photoPins.unshift(pin);
+      localStorage.setItem('MAPA_PHOTO_PINS', JSON.stringify(STATE.photoPins));
+      alert(`Prospect "${title}" adicionado com sucesso aos seus Pinos e no Mapa!`);
+      renderPhotoPins();
+      renderMapMarkers();
     }
 
     // ── MODAL FICHA COMPLETA (37 CAMPOS) ──
@@ -1125,8 +1532,8 @@
       const pin = {
         id: 'PHOTO_' + Date.now(),
         img, cat, title, comments,
-        lat: STATE.userPos.lat,
-        lng: STATE.userPos.lng,
+        lat: STATE.userPos ? STATE.userPos.lat : -24.7349,
+        lng: STATE.userPos ? STATE.userPos.lng : -53.7410,
         date: new Date().toLocaleString('pt-BR')
       };
 
@@ -1213,6 +1620,18 @@
       box.innerHTML = html;
     }
 
+    // ── EXPORTAR VISITAS EM EXCEL ──
+    document.getElementById('btn-export-visits').addEventListener('click', () => {
+      if (STATE.visitLogs.length === 0) {
+        alert('Nenhuma visita registrada para exportar.');
+        return;
+      }
+      const ws = XLSX.utils.json_to_sheet(STATE.visitLogs);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Visitas");
+      XLSX.writeFile(wb, `Relatorio_Visitas_${new Date().toISOString().slice(0,10)}.xlsx`);
+    });
+
     // ── ADMIN USUÁRIOS ──
     document.getElementById('uadmin-scope').addEventListener('change', (e) => {
       document.getElementById('uadmin-filial-wrap').style.display = e.target.value === 'FILIAL' ? 'block' : 'none';
@@ -1221,6 +1640,8 @@
     document.getElementById('form-user-admin').addEventListener('submit', (e) => {
       e.preventDefault();
       const name = document.getElementById('uadmin-name').value;
+      const username = document.getElementById('uadmin-username').value.trim();
+      const pass = document.getElementById('uadmin-password').value.trim();
       const scope = document.getElementById('uadmin-scope').value;
       const filial = document.getElementById('uadmin-filial-val').value;
 
@@ -1232,11 +1653,11 @@
       if (document.getElementById('chk-mod-visitas').checked) mods.push('visitas');
       if (document.getElementById('chk-mod-google').checked) mods.push('google');
 
-      const nu = { id: 'USR_' + Date.now(), name, scope, filial, mods };
+      const nu = { id: username, username, pass, name, scope, filial, role: 'vendedor', mods };
       STATE.users.push(nu);
       localStorage.setItem('MAPA_USERS', JSON.stringify(STATE.users));
 
-      alert(`Usuário ${name} cadastrado!`);
+      alert(`Usuário "${username}" cadastrado com sucesso!`);
       document.getElementById('form-user-admin').reset();
       renderUsersAdmin();
     });
@@ -1246,9 +1667,12 @@
       let html = '';
       STATE.users.forEach(u => {
         html += `
-          <div style="background:#090d16; border:1px solid var(--border-color); padding:8px; border-radius:6px; margin-top:6px; font-size:11px;">
-            <b style="color:#fff;">${u.name}</b> · <span style="color:var(--accent-orange);">Escopo: ${u.scope} ${u.filial ? '('+u.filial+')' : ''}</span><br/>
-            <span style="color:var(--text-muted);">Módulos: ${u.mods ? u.mods.join(', ') : 'Todos'}</span>
+          <div style="background:#090d16; border:1px solid var(--border-color); padding:8px 10px; border-radius:8px; margin-top:6px; font-size:11px;">
+            <div style="display:flex; justify-content:space-between;">
+              <b style="color:#fff;">${u.name} (@${u.username})</b>
+              <span style="color:var(--accent-orange); font-weight:bold;">${u.scope} ${u.filial ? '('+u.filial+')' : ''}</span>
+            </div>
+            <div style="color:var(--text-muted); margin-top:2px;">🔑 Senha: ${u.pass} · Módulos: ${u.mods ? u.mods.join(', ') : 'Todos'}</div>
           </div>
         `;
       });
