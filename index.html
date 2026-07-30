@@ -540,18 +540,34 @@
       </div>
     </section>
 
-    <!-- VIEW 6: GOOGLE SEARCH & PROSPECÇÃO -->
+    <!-- VIEW 6: GOOGLE SEARCH AUTOMÁTICO & PROSPECÇÃO -->
     <section id="view-google" class="view-panel">
       <div style="padding: 14px; overflow-y: auto; flex: 1;">
-        <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent-blue);">🌐 Pesquisar no Google Maps & Prospecção Externa</h3>
-        <div style="background: rgba(59,130,246,0.1); padding: 14px; border-radius: 12px; border: 1px solid rgba(59,130,246,0.3); margin-bottom: 16px;">
-          <label style="color: #60a5fa; font-size: 11px; font-weight: bold; display: block; margin-bottom: 6px;">🔍 Buscar Estabelecimentos / Prospects no Google Maps</label>
-          <div style="display: flex; gap: 6px;">
-            <input type="text" id="inp-google-query" style="flex:1; background:#090d16; border:1px solid var(--border-color); padding:10px; border-radius:8px; color:#fff; font-size:12px;" placeholder="Ex: Supermercado em Toledo PR ou Padaria em Cascavel"/>
-            <button id="btn-search-google" onclick="executeGoogleSearch()" style="background: var(--accent-blue); color:#fff; border:none; padding: 0 16px; border-radius: 8px; font-weight: bold; cursor: pointer;">Buscar</button>
-          </div>
-          <div style="font-size:10px; color:var(--text-muted); margin-top:6px;">Retorna lugares reais do Google Maps / OpenStreetMap com endereço, mapa e botão de prospect.</div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <h3 style="font-size: 15px; color: var(--accent-blue);">🌐 Prospecção Automática Google Maps</h3>
+          <button onclick="autoScanGoogleProspects()" style="background:var(--accent-blue); color:#fff; border:none; padding:6px 12px; border-radius:8px; font-size:11px; font-weight:bold; cursor:pointer;">🔄 Varrer Minha Região</button>
         </div>
+
+        <div style="background: rgba(59,130,246,0.1); padding: 12px; border-radius: 12px; border: 1px solid rgba(59,130,246,0.3); margin-bottom: 14px;">
+          <div style="font-size:11px; color:#93c5fd; margin-bottom:8px;">
+            <b>⚡ Varredura Automática nos Seus Segmentos Alvo</b> (Supermercados, Padarias, Bebidas e Alimentação na sua localização).
+          </div>
+          
+          <!-- Filtros de Segmento Alvo Automático -->
+          <div style="display:flex; gap:6px; overflow-x:auto; padding-bottom:4px; margin-bottom:8px;" id="google-cat-buttons">
+            <button class="act-btn" style="background:#2563eb; color:#fff;" onclick="autoScanGoogleProspects('supermercado')">🛒 Supermercados</button>
+            <button class="act-btn" style="background:#059669; color:#fff;" onclick="autoScanGoogleProspects('padaria')">🥖 Padarias</button>
+            <button class="act-btn" style="background:#d97706; color:#fff;" onclick="autoScanGoogleProspects('bebidas')">🍺 Bebidas</button>
+            <button class="act-btn" style="background:#8b5cf6; color:#fff;" onclick="autoScanGoogleProspects('restaurante')">🍔 Restaurantes</button>
+            <button class="act-btn" style="background:#db2777; color:#fff;" onclick="autoScanGoogleProspects('minimercado')">🏪 Minimercados</button>
+          </div>
+
+          <div style="display: flex; gap: 6px;">
+            <input type="text" id="inp-google-query" style="flex:1; background:#090d16; border:1px solid var(--border-color); padding:8px; border-radius:6px; color:#fff; font-size:12px;" placeholder="Personalizar cidade/busca (ex: Toledo PR)..."/>
+            <button id="btn-search-google" onclick="executeGoogleSearch()" style="background: var(--accent-blue); color:#fff; border:none; padding: 0 12px; border-radius: 6px; font-weight: bold; cursor: pointer;">Buscar</button>
+          </div>
+        </div>
+
         <div id="google-results-box"></div>
       </div>
     </section>
@@ -1360,48 +1376,81 @@
       box.innerHTML = html;
     }
 
-    // ── BUSCA GOOGLE REAL & PROSPECÇÃO (OPENSTREETMAP / GOOGLE MAPS API) ──
+    // ── BUSCA GOOGLE AUTOMÁTICA & PROSPECÇÃO (OPENSTREETMAP / GOOGLE MAPS API) ──
+    async function autoScanGoogleProspects(keyword = 'supermercado') {
+      let city = 'Toledo PR';
+      if (STATE.userPos) {
+        // Encontra a cidade dos clientes mais próximos
+        if (STATE.activeClients && STATE.activeClients[0]) {
+          city = `${STATE.activeClients[0].m} ${STATE.activeClients[0].u}`;
+        }
+      }
+      const query = `${keyword} em ${city}`;
+      document.getElementById('inp-google-query').value = query;
+      await performGoogleSearch(query, keyword);
+    }
+
     async function executeGoogleSearch() {
       const q = document.getElementById('inp-google-query').value.trim();
-      const box = document.getElementById('google-results-box');
-
       if (!q) {
-        alert('Digite o nome ou segmento para buscar no Google Maps (ex: Supermercado em Toledo)');
+        alert('Digite uma cidade ou termo para buscar.');
         return;
       }
+      await performGoogleSearch(q, 'geral');
+    }
 
+    async function performGoogleSearch(query, category) {
+      const box = document.getElementById('google-results-box');
       box.innerHTML = `
-        <div style="background:rgba(59,130,246,0.1); border:1px solid var(--accent-blue); padding:16px; border-radius:10px; text-align:center; color:#fff;">
+        <div style="background:rgba(59,130,246,0.1); border:1px solid var(--accent-blue); padding:16px; border-radius:12px; text-align:center; color:#fff;">
           <div class="spinner" style="margin: 0 auto 10px;"></div>
-          <b>🔍 Conectando ao Google Maps / OpenStreetMap...</b>
-          <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">Pesquisando estabelecimentos para "${q}"...</div>
+          <b>🌐 Varrendo Google Maps na sua região...</b>
+          <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">Pesquisando "${query}"...</div>
         </div>
       `;
 
       try {
-        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=12&countrycodes=br&addressdetails=1`;
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=15&countrycodes=br&addressdetails=1`;
         const resp = await fetch(url);
         const data = await resp.json();
 
         if (!data || data.length === 0) {
-          box.innerHTML = `<div style="background:#121929; padding:14px; border-radius:10px; color:var(--text-muted); text-align:center;">Nenhum novo lugar encontrado para "${q}". Tente buscar ex: "Supermercado Cascavel PR".</div>`;
+          box.innerHTML = `<div style="background:#121929; padding:14px; border-radius:10px; color:var(--text-muted); text-align:center;">Nenhum local retornado para "${query}".</div>`;
           return;
         }
 
-        let html = `<div style="font-size:12px; font-weight:bold; color:var(--accent-green); margin-bottom:8px;">✅ ${data.length} Lugares Encontrados no Google / OSM Maps:</div>`;
+        let html = `<div style="font-size:12px; font-weight:bold; color:var(--accent-green); margin-bottom:10px;">🔥 Varredura Google: ${data.length} Locais Encontrados em "${query}":</div>`;
+        
         data.forEach(item => {
           const lat = parseFloat(item.lat);
           const lon = parseFloat(item.lon);
           const name = item.display_name.split(',')[0] || item.name || 'Estabelecimento Comercial';
           const addr = item.display_name;
 
+          // Verifica se este local já bate com algum cliente da base por nome ou endereço
+          const nameClean = name.toLowerCase().trim();
+          const existingClient = STATE.rawClients.find(c => {
+            if (!c.c) return false;
+            const cName = c.c.toLowerCase().trim();
+            return cName.includes(nameClean) || nameClean.includes(cName);
+          });
+
+          const isCadastrado = !!existingClient;
+          const statusBadge = isCadastrado 
+            ? `<span style="background:rgba(16,185,129,0.2); color:#34d399; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:bold;">✅ JÁ É CLIENTE DA BASE (${existingClient.f})</span>`
+            : `<span style="background:rgba(236,72,153,0.2); color:#f472b6; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:bold;">🔥 NOVO PROSPECT GOOGLE (Não Cadastrado!)</span>`;
+
           html += `
             <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:12px; margin-bottom:8px;">
-              <b style="color:#fff; font-size:13px;">🌐 ${name}</b>
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">
+                <b style="color:#fff; font-size:13px;">🌐 ${name}</b>
+                ${statusBadge}
+              </div>
               <div style="font-size:11px; color:#cbd5e1; margin-top:2px;">📍 ${addr}</div>
               <div style="font-size:10px; color:var(--accent-blue); margin-top:2px;">GPS: ${lat.toFixed(5)}, ${lon.toFixed(5)}</div>
               <div style="display:flex; gap:6px; margin-top:8px;">
                 <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lon}" target="_blank" class="act-btn maps">🗺️ Abrir no Google Maps</a>
+                ${isCadastrado ? `<button onclick="openDossierModal('${existingClient.id}')" class="act-btn dossier">📄 Ver Ficha</button>` : ''}
                 <button onclick="addGoogleAsProspect('${name.replace(/'/g, "")}', '${addr.replace(/'/g, "")}', ${lat}, ${lon})" class="act-btn" style="background:var(--accent-pink); color:#fff;">+ Salvar como Prospect</button>
               </div>
             </div>
@@ -1704,6 +1753,9 @@
         const targetId = item.dataset.tab;
         document.getElementById(targetId).classList.add('active');
         if (targetId === 'view-map' && STATE.map) setTimeout(() => STATE.map.invalidateSize(), 200);
+        if (targetId === 'view-google' && !document.getElementById('google-results-box').children.length) {
+          autoScanGoogleProspects();
+        }
       });
     });
   </script>
