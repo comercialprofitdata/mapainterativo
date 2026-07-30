@@ -423,6 +423,7 @@
   <div id="quick-toolbar">
     <button id="btn-gps-my" class="btn-tb active" onclick="triggerGPS()">📍 Minha Posição</button>
     <button id="btn-gps-city" class="btn-tb" onclick="simularPosicaoCidade()">🏙️ Cidade</button>
+    <button id="btn-toggle-google-map" class="btn-tb active" style="color: var(--accent-pink); border-color: rgba(236,72,153,0.5);" onclick="toggleGoogleOnMap()">🌐 Prospects Google (ON)</button>
     <button id="btn-add-photo-pin" class="btn-tb" style="color: var(--accent-pink); border-color: rgba(236,72,153,0.4);" onclick="openPhotoPinModal()">📷 Foto GPS</button>
     
     <select id="sel-radius" class="select-tb">
@@ -541,13 +542,19 @@
             <b>⚡ Varredura Automática nos Seus Segmentos Alvo</b> (Supermercados, Padarias, Bebidas e Alimentação na sua localização).
           </div>
           
-          <!-- Filtros de Segmento Alvo Automático -->
-          <div style="display:flex; gap:6px; overflow-x:auto; padding-bottom:4px; margin-bottom:8px;" id="google-cat-buttons">
-            <button class="act-btn" style="background:#2563eb; color:#fff;" onclick="autoScanGoogleProspects('supermercado')">🛒 Supermercados</button>
+          <!-- Filtros dos 10 Segmentos Alvo Automático -->
+          <div style="display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; margin-bottom:10px;" id="google-cat-buttons">
+            <button class="act-btn" style="background:#2563eb; color:#fff;" onclick="autoScanGoogleProspects('supermercado')">🛒 Mercados</button>
             <button class="act-btn" style="background:#059669; color:#fff;" onclick="autoScanGoogleProspects('padaria')">🥖 Padarias</button>
+            <button class="act-btn" style="background:#dc2626; color:#fff;" onclick="autoScanGoogleProspects('açougue')">🥩 Açougues</button>
             <button class="act-btn" style="background:#d97706; color:#fff;" onclick="autoScanGoogleProspects('bebidas')">🍺 Bebidas</button>
+            <button class="act-btn" style="background:#16a34a; color:#fff;" onclick="autoScanGoogleProspects('hortifruti')">🍎 Hortifrutis</button>
+            <button class="act-btn" style="background:#db2777; color:#fff;" onclick="autoScanGoogleProspects('conveniencia')">🏪 Conveniência</button>
+            <button class="act-btn" style="background:#0284c7; color:#fff;" onclick="autoScanGoogleProspects('farmacia')">💊 Farmácias</button>
             <button class="act-btn" style="background:#8b5cf6; color:#fff;" onclick="autoScanGoogleProspects('restaurante')">🍔 Restaurantes</button>
-            <button class="act-btn" style="background:#db2777; color:#fff;" onclick="autoScanGoogleProspects('minimercado')">🏪 Minimercados</button>
+            <button class="act-btn" style="background:#475569; color:#fff;" onclick="autoScanGoogleProspects('atacado alimentos')">🏭 Atacado</button>
+            <button class="act-btn" style="background:#ea580c; color:#fff;" onclick="autoScanGoogleProspects('pet shop')">🐶 Pet Shops</button>
+            <button class="act-btn" style="background:linear-gradient(135deg, #ec4899, #8b5cf6); color:#fff;" onclick="autoScanGoogleProspects('supermercado, padaria, bebidas')">🌟 VARREDURA GERAL</button>
           </div>
 
           <div style="display: flex; gap: 6px;">
@@ -822,7 +829,9 @@
       activeCnae: "TARGET",
       searchTerm: "",
       radarAnimId: null,
-      radarSweepAngle: 0
+      radarSweepAngle: 0,
+      googleProspects: [],
+      showGoogleOnMap: true
     };
 
     const CIDADES_PARANA = [
@@ -1150,6 +1159,20 @@
       updateRadarHUD();
     }
 
+    function toggleGoogleOnMap() {
+      STATE.showGoogleOnMap = !STATE.showGoogleOnMap;
+      const btn = document.getElementById('btn-toggle-google-map');
+      if (STATE.showGoogleOnMap) {
+        btn.classList.add('active');
+        btn.innerText = '🌐 Prospects Google (ON)';
+      } else {
+        btn.classList.remove('active');
+        btn.innerText = '🌐 Prospects Google (OFF)';
+      }
+      renderMapMarkers();
+      drawRadarCanvas();
+    }
+
     function renderMapMarkers() {
       if (!STATE.map || !STATE.markerCluster) return;
       STATE.markerCluster.clearLayers();
@@ -1179,6 +1202,31 @@
         marker.bindPopup(popHtml);
         markers.push(marker);
       });
+
+      // Adiciona Pinos do Google Maps no Mapa Principal
+      if (STATE.showGoogleOnMap && STATE.googleProspects && STATE.googleProspects.length > 0) {
+        STATE.googleProspects.forEach(gp => {
+          const gMarker = L.marker([gp.lat, gp.lng], {
+            icon: L.divIcon({
+              className: 'custom-google-pin',
+              html: `<div style="background:linear-gradient(135deg,#ec4899,#8b5cf6); color:#fff; border:2px solid #fff; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; font-size:14px; box-shadow:0 0 14px #ec4899;">🌐</div>`,
+              iconSize: [28,28]
+            })
+          });
+          gMarker.bindPopup(`
+            <div style="font-size:12px; color:#0f172a; min-width:210px;">
+              <b style="font-size:13px; color:#ec4899;">🌐 ${gp.name}</b><br/>
+              <span style="background:rgba(236,72,153,0.15); color:#ec4899; padding:2px 6px; border-radius:4px; font-weight:bold; font-size:10px;">🔥 NOVO PROSPECT GOOGLE (Oportunidade)</span><br/>
+              <div style="margin-top:4px;">📍 ${gp.addr}</div>
+              <div style="margin-top:8px; display:flex; gap:4px;">
+                <a href="https://www.google.com/maps/search/?api=1&query=${gp.lat},${gp.lng}" target="_blank" style="background:#2563eb; color:#fff; padding:4px 8px; border-radius:4px; text-decoration:none; font-size:10px; font-weight:bold;">🗺️ Abrir Maps</a>
+                <button onclick="addGoogleAsProspect('${gp.name.replace(/'/g, "")}', '${gp.addr.replace(/'/g, "")}', ${gp.lat}, ${gp.lng})" style="background:#ec4899; color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">+ Salvar Prospect</button>
+              </div>
+            </div>
+          `);
+          markers.push(gMarker);
+        });
+      }
 
       // Adiciona Pinos com Foto no Mapa
       STATE.photoPins.forEach(p => {
@@ -1337,6 +1385,24 @@
         ctx.beginPath(); ctx.arc(px, py, c.target ? 4.5 : 3.5, 0, Math.PI * 2); ctx.fill();
         ctx.shadowBlur = 0;
       });
+
+      // Desenha Prospects do Google em Rosa Neon no Radar
+      if (STATE.showGoogleOnMap && STATE.googleProspects && STATE.googleProspects.length > 0) {
+        STATE.googleProspects.forEach(gp => {
+          const d = haversineDistance(userLat, userLng, gp.lat, gp.lng);
+          if (d > radiusKm) return;
+          const angle = Math.atan2((gp.lng - userLng), (gp.lat - userLat));
+          const distPct = Math.min(1.0, d / radiusKm);
+          const px = cx + Math.sin(angle) * (maxR * distPct);
+          const py = cy - Math.cos(angle) * (maxR * distPct);
+
+          ctx.fillStyle = '#ec4899';
+          ctx.shadowColor = '#ec4899';
+          ctx.shadowBlur = 12;
+          ctx.beginPath(); ctx.arc(px, py, 5.5, 0, Math.PI * 2); ctx.fill();
+          ctx.shadowBlur = 0;
+        });
+      }
     }
 
     function updateRadarHUD() {
@@ -1344,9 +1410,10 @@
       const radiusKm = STATE.activeRadiusKm === 9999 ? 25 : STATE.activeRadiusKm;
       const list = STATE.activeClients.slice(0, 60);
       const targetCount = list.filter(x => x.target).length;
+      const googleCount = (STATE.googleProspects || []).length;
       const closest = list[0];
 
-      document.getElementById('hud-stat-total').innerText = list.length;
+      document.getElementById('hud-stat-total').innerText = list.length + googleCount;
       document.getElementById('hud-stat-target').innerText = targetCount;
       document.getElementById('hud-stat-closest').innerText = closest && closest.distKm < 9999 ? formatDistance(closest.distKm) : '--';
 
@@ -1354,7 +1421,7 @@
       if (userLat === null) {
         statusLbl.innerText = '⚠️ Ative o GPS ou Selecione uma Cidade para ativar o Radar';
       } else {
-        statusLbl.innerText = `🎯 Radar de Varredura (${radiusKm} km) · ${list.length} estabelecimentos detectados`;
+        statusLbl.innerText = `🎯 Radar: ${list.length} Clientes Base + 🔥 ${googleCount} Prospects Google no Raio`;
       }
 
       // Renderiza lista compacta do Radar
@@ -1454,7 +1521,20 @@
         }
 
         if (data && data.length > 0) {
-          html += `<div style="font-size:11px; font-weight:bold; color:var(--accent-green); margin-top:10px; margin-bottom:6px;">🌐 Varredura do Google Maps / OpenStreetMap (${data.length} Locais):</div>`;
+          STATE.googleProspects = [];
+          data.forEach(item => {
+            const lat = parseFloat(item.lat);
+            const lon = parseFloat(item.lon);
+            const name = item.display_name.split(',')[0] || item.name || 'Estabelecimento Comercial';
+            const addr = item.display_name;
+            STATE.googleProspects.push({ name, addr, lat, lng: lon });
+          });
+
+          // Renderiza no Mapa e no Radar
+          renderMapMarkers();
+          updateRadarHUD();
+
+          html += `<div style="font-size:11px; font-weight:bold; color:var(--accent-green); margin-top:10px; margin-bottom:6px;">🌐 Varredura do Google Maps / OpenStreetMap (${data.length} Locais no Mapa & Radar):</div>`;
           
           data.forEach(item => {
             const lat = parseFloat(item.lat);
