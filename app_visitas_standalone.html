@@ -383,18 +383,6 @@
         </div>
         <button type="submit" class="btn-login">🔒 Entrar no Sistema</button>
       </form>
-
-      <div class="quick-users-box">
-        <div style="font-size:10px; color:var(--text-muted); font-weight:bold; margin-bottom:4px;">🔑 Acesso Rápido para Teste:</div>
-        <div class="quick-user-btn" onclick="fillLogin('triunfante', 'abc123')">
-          <span>👑 <b>triunfante</b> (Master / Brasil)</span>
-          <span style="color:var(--accent-green); font-size:9px;">Senha: abc123</span>
-        </div>
-        <div class="quick-user-btn" onclick="fillLogin('TCG', 'abc123')">
-          <span>🏢 <b>TCG</b> (Vendedor / Filial TCG)</span>
-          <span style="color:var(--accent-green); font-size:9px;">Senha: abc123</span>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -1740,7 +1728,7 @@
               <b style="color:#fff;">${u.name} (@${u.username})</b>
               <span style="color:var(--accent-orange); font-weight:bold;">${u.scope} ${u.filial ? '('+u.filial+')' : ''}</span>
             </div>
-            <div style="color:var(--text-muted); margin-top:2px;">🔑 Senha: ${u.pass} · Módulos: ${u.mods ? u.mods.join(', ') : 'Todos'}</div>
+            <div style="color:var(--text-muted); margin-top:2px;">🔑 Senha: •••••• · Módulos: ${u.mods ? u.mods.join(', ') : 'Todos'}</div>
           </div>
         `;
       });
