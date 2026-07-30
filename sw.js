@@ -1,8 +1,10 @@
-const CACHE_NAME = 'visitas-offline-v1';
+const CACHE_NAME = 'visitas-v3-login';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
-  './clientes_data.js',
+  './clientes_part1.js',
+  './clientes_part2.js',
+  './clientes_part3.js',
   './manifest.json',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
@@ -13,11 +15,11 @@ const ASSETS_TO_CACHE = [
 ];
 
 self.addEventListener('install', (event) => {
+  console.log('[ServiceWorker] Installing new version v3');
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[ServiceWorker] Caching app shell & assets');
       return cache.addAll(ASSETS_TO_CACHE).catch(err => {
-        console.warn('[ServiceWorker] Alguns assets externos falharam ao pré-carregar:', err);
+        console.warn('[ServiceWorker] Pré-carregamento:', err);
       });
     })
   );
@@ -25,12 +27,13 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
+  console.log('[ServiceWorker] Activating new version v3');
   event.waitUntil(
     caches.keys().then((keyList) => {
       return Promise.all(
         keyList.map((key) => {
           if (key !== CACHE_NAME) {
-            console.log('[ServiceWorker] Removendo cache antigo:', key);
+            console.log('[ServiceWorker] Excluindo cache antigo:', key);
             return caches.delete(key);
           }
         })
@@ -40,25 +43,28 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// Network-First for HTML/JS to ensure instant updates
 self.addEventListener('fetch', (event) => {
+  if (event.request.mode === 'navigate' || event.request.url.includes('index.html')) {
+    event.respondWith(
+      fetch(event.request).then(networkResponse => {
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, networkResponse.clone()));
+        return networkResponse;
+      }).catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((response) => {
-      if (response) {
-        return response;
-      }
-      return fetch(event.request).then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+      return response || fetch(event.request).then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
           const responseToCache = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, responseToCache);
           });
         }
         return networkResponse;
-      }).catch(() => {
-        // Retorno de fallback offline quando sem conexão
-        if (event.request.headers.get('accept').includes('text/html')) {
-          return caches.match('./index.html');
-        }
       });
     })
   );

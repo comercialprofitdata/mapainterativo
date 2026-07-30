@@ -799,6 +799,16 @@
   <script src="clientes_part1.js"></script>
   <script src="clientes_part2.js"></script>
   <script src="clientes_part3.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js?v=3').then(reg => {
+          console.log('[PWA] ServiceWorker registrado com sucesso:', reg);
+          reg.update();
+        }).catch(err => console.warn('[PWA] SW erro:', err));
+      });
+    }
+  </script>
 
   <!-- LÓGICA PRINCIPAL DO APP -->
   <script>
@@ -908,10 +918,19 @@
     }
 
     function logoutUser() {
-      if (confirm('Deseja realmente sair do sistema?')) {
+      if (confirm('Deseja realmente sair e deslogar do sistema?')) {
         localStorage.removeItem('MAPA_LOGGED_USER');
-        STATE.currentUser = null;
-        location.reload();
+        if ('caches' in window) {
+          caches.keys().then(names => {
+            return Promise.all(names.map(name => caches.delete(name)));
+          }).then(() => {
+            window.location.href = window.location.pathname + '?nocache=' + Date.now();
+          }).catch(() => {
+            window.location.href = window.location.pathname + '?nocache=' + Date.now();
+          });
+        } else {
+          window.location.href = window.location.pathname + '?nocache=' + Date.now();
+        }
       }
     }
 
