@@ -407,6 +407,7 @@
         <div class="user-pill" onclick="openUserModal()">
           <span>👤</span><span id="lbl-user-name">Usuário</span>
         </div>
+        <button class="btn-logout" style="background:rgba(59,130,246,0.25); border-color:rgba(59,130,246,0.5); color:#93c5fd;" onclick="forceAppUpdate()" title="Atualizar aplicativo no celular">🔄 Atualizar</button>
         <button class="btn-logout" onclick="logoutUser()" title="Sair do Sistema">🚪 Sair</button>
       </div>
     </div>
@@ -423,7 +424,17 @@
   <div id="quick-toolbar">
     <button id="btn-gps-my" class="btn-tb active" onclick="triggerGPS()">📍 Minha Posição</button>
     <button id="btn-gps-city" class="btn-tb" onclick="simularPosicaoCidade()">🏙️ Cidade</button>
-    <button id="btn-toggle-google-map" class="btn-tb active" style="color: var(--accent-pink); border-color: rgba(236,72,153,0.5);" onclick="toggleGoogleOnMap()">🌐 Prospects Google (ON)</button>
+    
+    <!-- Botão de Varredura Completa 1-Clique -->
+    <button id="btn-scan-all-now" class="btn-tb" style="background: linear-gradient(135deg, #ec4899, #8b5cf6); color: #fff; font-weight: bold; border:none;" onclick="scanAllCategoriesNow()">⚡ Varrer Tudo (10 Segmentos)</button>
+
+    <!-- Seletor de Camadas do Mapa (Ver Só Cliente, Só Prospect ou Ambos) -->
+    <select id="sel-map-mode" class="select-tb" style="color: var(--accent-pink); font-weight:bold; border-color: rgba(236,72,153,0.5);">
+      <option value="ALL" selected>🌟 Ver: Clientes + Prospects</option>
+      <option value="BASE">🏢 Ver: Apenas Clientes Base</option>
+      <option value="PROSPECTS">🌐 Ver: Apenas Prospects Google</option>
+    </select>
+
     <button id="btn-add-photo-pin" class="btn-tb" style="color: var(--accent-pink); border-color: rgba(236,72,153,0.4);" onclick="openPhotoPinModal()">📷 Foto GPS</button>
     
     <select id="sel-radius" class="select-tb">
@@ -757,8 +768,32 @@
           <label>Comentários & Anotações *</label>
           <textarea id="photo-comments" rows="3" required placeholder="Escreva os detalhes sobre esta foto e local..."></textarea>
         </div>
-        <button type="submit" class="btn-submit" style="background: var(--accent-pink);">💾 Salvar Foto com GPS</button>
-      </form>
+  <!-- MODAL SELEÇÃO / DIGITAÇÃO DE QUALQUER CIDADE DO BRASIL -->
+  <div id="modal-select-city" class="modal-sheet">
+    <div class="sheet-content">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 style="font-size:14px; color:#60a5fa;">🏙️ Selecionar ou Digitar Qualquer Cidade (Brasil)</h3>
+        <button onclick="closeCityModal()" style="background:none; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;">✕</button>
+      </div>
+      <div style="margin-bottom:14px;">
+        <label style="font-size:11px; font-weight:bold; color:#cbd5e1; display:block; margin-bottom:6px;">🔍 Digite o nome de qualquer cidade do Brasil:</label>
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="inp-custom-city" style="flex:1; background:#121929; border:1px solid var(--border-color); padding:10px; border-radius:8px; color:#fff; font-size:13px;" placeholder="Ex: Campo Grande MS, Cuiabá, São Paulo..."/>
+          <button onclick="searchAndMoveToCity()" style="background:var(--accent-blue); color:#fff; border:none; padding:0 14px; border-radius:8px; font-weight:bold; cursor:pointer;">Ir para Cidade</button>
+        </div>
+      </div>
+
+      <div style="font-size:11px; font-weight:bold; color:var(--text-muted); margin-bottom:6px;">⚡ Ou toque em uma cidade frequente:</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;" id="quick-cities-grid">
+        <button class="act-btn" style="background:#1e293b; color:#fff; justify-content:flex-start;" onclick="selectPresetCity(-20.4697, -54.6201, 'Campo Grande MS')">🏙️ Campo Grande - MS</button>
+        <button class="act-btn" style="background:#1e293b; color:#fff; justify-content:flex-start;" onclick="selectPresetCity(-22.2231, -54.8069, 'Dourados MS')">🏙️ Dourados - MS</button>
+        <button class="act-btn" style="background:#1e293b; color:#fff; justify-content:flex-start;" onclick="selectPresetCity(-24.7349, -53.7410, 'Toledo PR')">🏙️ Toledo - PR</button>
+        <button class="act-btn" style="background:#1e293b; color:#fff; justify-content:flex-start;" onclick="selectPresetCity(-24.9558, -53.4552, 'Cascavel PR')">🏙️ Cascavel - PR</button>
+        <button class="act-btn" style="background:#1e293b; color:#fff; justify-content:flex-start;" onclick="selectPresetCity(-25.4284, -49.2733, 'Curitiba PR')">🏙️ Curitiba - PR</button>
+        <button class="act-btn" style="background:#1e293b; color:#fff; justify-content:flex-start;" onclick="selectPresetCity(-23.5505, -46.6333, 'São Paulo SP')">🏙️ São Paulo - SP</button>
+        <button class="act-btn" style="background:#1e293b; color:#fff; justify-content:flex-start;" onclick="selectPresetCity(-15.6010, -56.0974, 'Cuiabá MT')">🏙️ Cuiabá - MT</button>
+        <button class="act-btn" style="background:#1e293b; color:#fff; justify-content:flex-start;" onclick="selectPresetCity(-16.6869, -49.2648, 'Goiânia GO')">🏙️ Goiânia - GO</button>
+      </div>
     </div>
   </div>
 
@@ -955,6 +990,14 @@
       renderVisitHistory();
       renderUsersAdmin();
       initRadarAnimation();
+
+      const selMapMode = document.getElementById('sel-map-mode');
+      if (selMapMode) {
+        selMapMode.addEventListener('change', () => {
+          renderMapMarkers();
+          drawRadarCanvas();
+        });
+      }
     }
 
     function populateFiliaisDropdown() {
@@ -1050,13 +1093,70 @@
     }
 
     function simularPosicaoCidade() {
-      let msg = "Escolha a cidade para simular localização:\n\n";
-      CIDADES_PARANA.forEach((c, idx) => msg += `${idx + 1}. ${c.name}\n`);
-      const choice = prompt(msg, "1");
-      if (choice && CIDADES_PARANA[parseInt(choice)-1]) {
-        const c = CIDADES_PARANA[parseInt(choice)-1];
-        updateUserLocation(c.lat, c.lng, 20);
+      document.getElementById('modal-select-city').classList.add('active');
+    }
+
+    function closeCityModal() {
+      document.getElementById('modal-select-city').classList.remove('active');
+    }
+
+    function selectPresetCity(lat, lng, name) {
+      updateUserLocation(lat, lng, 20);
+      closeCityModal();
+    }
+
+    async function searchAndMoveToCity() {
+      const cityVal = document.getElementById('inp-custom-city').value.trim();
+      if (!cityVal) {
+        alert('Digite o nome de uma cidade.');
+        return;
       }
+      try {
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cityVal + ', Brasil')}&limit=1`;
+        const resp = await fetch(url);
+        const data = await resp.json();
+        if (data && data[0]) {
+          const lat = parseFloat(data[0].lat);
+          const lng = parseFloat(data[0].lon);
+          updateUserLocation(lat, lng, 20);
+          closeCityModal();
+        } else {
+          alert(`Cidade "${cityVal}" não encontrada. Tente colocar o estado (ex: "${cityVal} MS").`);
+        }
+      } catch (err) {
+        alert('Erro ao localizar cidade: ' + err.message);
+      }
+    }
+
+    function forceAppUpdate() {
+      if (confirm('Atualizar aplicativo para a versão mais recente?')) {
+        if ('caches' in window) {
+          caches.keys().then(names => Promise.all(names.map(name => caches.delete(name))))
+            .then(() => {
+              if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(regs => {
+                  for(let r of regs) r.unregister();
+                  window.location.href = window.location.pathname + '?v=' + Date.now();
+                });
+              } else {
+                window.location.href = window.location.pathname + '?v=' + Date.now();
+              }
+            });
+        } else {
+          window.location.href = window.location.pathname + '?v=' + Date.now();
+        }
+      }
+    }
+
+    async function scanAllCategoriesNow() {
+      let city = 'Campo Grande, MS';
+      if (STATE.userPos && STATE.activeClients && STATE.activeClients[0]) {
+        city = `${STATE.activeClients[0].m}, ${STATE.activeClients[0].u}`;
+      }
+      const query = `supermercado, padaria, bebidas, açougue, hortifruti, conveniencia, farmacia, restaurante, atacado, pet shop, ${city}`;
+      document.getElementById('inp-google-query').value = query;
+      switchTab('view-map');
+      await performGoogleSearch(query, 'todos');
     }
 
     function updateUserLocation(lat, lng, accuracy) {
@@ -1177,34 +1277,38 @@
       if (!STATE.map || !STATE.markerCluster) return;
       STATE.markerCluster.clearLayers();
 
+      const mapMode = document.getElementById('sel-map-mode') ? document.getElementById('sel-map-mode').value : 'ALL';
       const markers = [];
-      const list = STATE.activeClients.slice(0, 800);
 
-      list.forEach(c => {
-        if (c.lt === null || c.lg === null) return;
+      // 1. Clientes da Base (Pinos Verdes / Azuis)
+      if (mapMode === 'ALL' || mapMode === 'BASE') {
+        const list = STATE.activeClients.slice(0, 800);
+        list.forEach(c => {
+          if (c.lt === null || c.lg === null) return;
 
-        const pinColor = c.target ? '#10b981' : '#3b82f6';
-        const marker = L.circleMarker([c.lt, c.lg], { radius: 6.5, fillColor: pinColor, color: '#ffffff', weight: 1.5, fillOpacity: 0.85 });
+          const pinColor = c.target ? '#10b981' : '#3b82f6';
+          const marker = L.circleMarker([c.lt, c.lg], { radius: 6.5, fillColor: pinColor, color: '#ffffff', weight: 1.5, fillOpacity: 0.85 });
 
-        const popHtml = `
-          <div style="font-size:12px; color:#0f172a; min-width:210px;">
-            <b style="font-size:13px; color:#1e293b;">${c.c}</b><br/>
-            <span style="color:#64748b;">CNPJ: ${c.j} · Filial: ${c.f}</span><br/>
-            <div style="margin-top:4px;">${c.e ? c.e + ' - ' : ''}${c.m}/${c.u}</div>
-            ${c.cnae ? `<div style="font-size:10px; color:#059669; margin-top:2px;">🎯 ${c.cnae.slice(0,40)}</div>` : ''}
-            ${c.distKm < 9999 ? `<div style="margin-top:4px; font-weight:bold; color:#3b82f6;">📏 Distância: ${formatDistance(c.distKm)} (${c.bearing.dir})</div>` : ''}
-            <div style="margin-top:8px; display:flex; gap:4px; flex-wrap:wrap;">
-              <button onclick="openDossierModal('${c.id}')" style="background:#ec4899; color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">📄 Ficha Completa</button>
-              <button onclick="openVisitModal('${c.id}')" style="background:#8b5cf6; color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">📝 Registrar Visita</button>
+          const popHtml = `
+            <div style="font-size:12px; color:#0f172a; min-width:210px;">
+              <b style="font-size:13px; color:#1e293b;">${c.c}</b><br/>
+              <span style="color:#64748b;">CNPJ: ${c.j} · Filial: ${c.f}</span><br/>
+              <div style="margin-top:4px;">${c.e ? c.e + ' - ' : ''}${c.m}/${c.u}</div>
+              ${c.cnae ? `<div style="font-size:10px; color:#059669; margin-top:2px;">🎯 ${c.cnae.slice(0,40)}</div>` : ''}
+              ${c.distKm < 9999 ? `<div style="margin-top:4px; font-weight:bold; color:#3b82f6;">📏 Distância: ${formatDistance(c.distKm)} (${c.bearing.dir})</div>` : ''}
+              <div style="margin-top:8px; display:flex; gap:4px; flex-wrap:wrap;">
+                <button onclick="openDossierModal('${c.id}')" style="background:#ec4899; color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">📄 Ficha Completa</button>
+                <button onclick="openVisitModal('${c.id}')" style="background:#8b5cf6; color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">📝 Registrar Visita</button>
+              </div>
             </div>
-          </div>
-        `;
-        marker.bindPopup(popHtml);
-        markers.push(marker);
-      });
+          `;
+          marker.bindPopup(popHtml);
+          markers.push(marker);
+        });
+      }
 
-      // Adiciona Pinos do Google Maps no Mapa Principal
-      if (STATE.showGoogleOnMap && STATE.googleProspects && STATE.googleProspects.length > 0) {
+      // 2. Prospects do Google Maps (Pinos Rosa / Dourado Piscantes)
+      if ((mapMode === 'ALL' || mapMode === 'PROSPECTS') && STATE.googleProspects && STATE.googleProspects.length > 0) {
         STATE.googleProspects.forEach(gp => {
           const gMarker = L.marker([gp.lat, gp.lng], {
             icon: L.divIcon({
@@ -1228,7 +1332,7 @@
         });
       }
 
-      // Adiciona Pinos com Foto no Mapa
+      // 3. Adiciona Pinos com Foto no Mapa
       STATE.photoPins.forEach(p => {
         const photoMarker = L.marker([p.lat, p.lng], {
           icon: L.divIcon({ className: 'custom-photo-pin', html: `<div style="background:#ec4899; color:#fff; border:2px solid #fff; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-size:12px; box-shadow:0 0 10px #ec4899;">📷</div>`, iconSize:[24,24] })

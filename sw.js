@@ -1,4 +1,4 @@
-const CACHE_NAME = 'visitas-v3-login';
+const CACHE_NAME = 'visitas-v4-cities-unlimited';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
