@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Mapa Interativo Pro - Visitas & Clientes</title>
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#0f172a"/>
+  
+  <!-- CSS Leaflet e Cluster -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+  
+  <style>
+    :root {
+      --bg-dark: #070a12;
+      --bg-card: #121929;
+      --bg-card-hover: #1c273e;
+      --accent-blue: #3b82f6;
+      --accent-green: #10b981;
+      --accent-orange: #f59e0b;
+      --accent-purple: #8b5cf6;
+      --accent-pink: #ec4899;
+      --accent-red: #ef4444;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #222f47;
+      --nav-height: 62px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    /* ── LOADING OVERLAY ── */
+    #loading-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: #070a12;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      text-align: center;
+    }
+    .spinner {
+      width: 48px; height: 48px;
+      border: 4px solid rgba(59,130,246,0.2);
+      border-top-color: var(--accent-blue);
+      border-radius: 50%;
+      animation: spin 1s infinite linear;
+      margin-bottom: 16px;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    /* ── HEADER ── */
+    #app-header {
+      background: #04060c;
+      border-bottom: 1px solid var(--border-color);
+      padding: 8px 12px 6px;
+      flex-shrink: 0;
+      z-index: 1000;
+    }
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .brand-icon {
+      width: 30px; height: 30px;
+      background: linear-gradient(135deg, #2563eb, #3b82f6);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+    }
+    .user-pill {
+      font-size: 10px;
+      background: rgba(139, 92, 246, 0.15);
+      border: 1px solid rgba(139, 92, 246, 0.4);
+      color: #c4b5fd;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Barra de Busca */
+    .search-bar-row { display: flex; gap: 6px; align-items: center; }
+    .search-input-wrap { position: relative; flex: 1; }
+    .search-input-wrap input {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 7px 28px 7px 10px;
+      color: var(--text-main);
+      font-size: 12px;
+      outline: none;
+    }
+    .search-input-wrap input:focus { border-color: var(--accent-blue); }
+    .search-clear { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 13px; cursor: pointer; display: none; }
+
+    /* ── QUICK TOOLBAR ── */
+    #quick-toolbar {
+      background: #0a0f1d;
+      padding: 5px 10px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      overflow-x: auto;
+      border-bottom: 1px solid var(--border-color);
+      flex-shrink: 0;
+      white-space: nowrap;
+      -webkit-overflow-scrolling: touch;
+    }
+    .btn-tb {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 5px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      display: flex; align-items: center; gap: 4px;
+      cursor: pointer; flex-shrink: 0;
+    }
+    .btn-tb.active { background: var(--accent-blue); border-color: var(--accent-blue); color: #fff; }
+    .select-tb {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 5px 7px;
+      border-radius: 6px;
+      font-size: 11px;
+      outline: none; flex-shrink: 0;
+    }
+
+    /* ── VIEWPORT CONTENT ── */
+    #main-content { flex: 1; position: relative; overflow: hidden; display: flex; flex-direction: column; }
+    .view-panel { display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
+    .view-panel.active { display: flex; flex-direction: column; }
+
+    /* ── MAP VIEW ── */
+    #map-container { width: 100%; height: 100%; background: #0b0f19; position: relative; }
+    #map { width: 100%; height: 100%; }
+
+    /* ── LIST VIEW ── */
+    #list-container { flex: 1; overflow-y: auto; padding: 10px 12px 70px; -webkit-overflow-scrolling: touch; }
+    .list-summary { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    
+    .client-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+    }
+    .card-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+    .client-title { font-size: 13px; font-weight: 700; color: #fff; line-height: 1.3; }
+    .client-sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+    .dist-badge { background: rgba(59, 130, 246, 0.15); border: 1px solid var(--accent-blue); color: #60a5fa; font-weight: 700; font-size: 10px; padding: 2px 7px; border-radius: 10px; white-space: nowrap; }
+    .card-body-row { font-size: 11px; color: #cbd5e1; margin-top: 3px; display: flex; align-items: center; gap: 4px; }
+    .card-actions { display: flex; gap: 4px; margin-top: 8px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.06); flex-wrap: wrap; }
+    
+    .act-btn {
+      flex: 1; min-width: 60px; padding: 5px 3px; border-radius: 6px;
+      border: 1px solid var(--border-color); background: #080d1a;
+      color: var(--text-main); font-size: 10px; font-weight: 600;
+      display: flex; align-items: center; justify-content: center; gap: 3px;
+      text-decoration: none; cursor: pointer;
+    }
+    .act-btn.maps { color: #60a5fa; border-color: rgba(59, 130, 246, 0.4); }
+    .act-btn.waze { color: #34d399; border-color: rgba(16, 185, 129, 0.4); }
+    .act-btn.call { color: #fbbf24; border-color: rgba(245, 158, 11, 0.4); }
+    .act-btn.wa { color: #4ade80; border-color: rgba(74, 222, 128, 0.4); }
+    .act-btn.dossier { color: #f472b6; border-color: rgba(244, 114, 182, 0.4); background: rgba(236, 72, 153, 0.12); }
+    .act-btn.log { color: #a78bfa; border-color: rgba(167, 139, 250, 0.4); background: rgba(139, 92, 246, 0.12); }
+
+    /* ── MODAL FULL FICHA DO CLIENTE ── */
+    #modal-dossier {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(6px);
+      z-index: 6000; display: none; align-items: center; justify-content: center;
+      padding: 10px;
+    }
+    #modal-dossier.active { display: flex; }
+    .dossier-box {
+      background: #0f172a; border: 1px solid var(--border-color);
+      border-radius: 16px; width: 100%; max-width: 650px; max-height: 90vh;
+      display: flex; flex-direction: column; overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.7);
+    }
+    .dossier-header {
+      background: #090d16; padding: 14px 16px; border-bottom: 1px solid var(--border-color);
+      display: flex; justify-content: space-between; align-items: flex-start;
+    }
+    .dossier-tabs {
+      display: flex; background: #090d16; border-bottom: 1px solid var(--border-color);
+      overflow-x: auto; flex-shrink: 0;
+    }
+    .dtab {
+      padding: 10px 14px; font-size: 11px; font-weight: 600; color: var(--text-muted);
+      border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap;
+    }
+    .dtab.active { color: var(--accent-blue); border-bottom-color: var(--accent-blue); background: rgba(59,130,246,0.1); }
+    .dossier-body { padding: 16px; overflow-y: auto; flex: 1; font-size: 12px; color: #cbd5e1; }
+    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 12px; }
+    .info-item { background: #162032; padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); }
+    .info-item label { font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 2px; }
+    .info-item val { font-size: 12px; font-weight: 600; color: #fff; word-break: break-word; }
+
+    /* ── MODAL VISITA & FOTO ── */
+    .modal-sheet {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px);
+      z-index: 5000; display: none; align-items: flex-end; justify-content: center;
+    }
+    .modal-sheet.active { display: flex; }
+    .sheet-content {
+      background: #121929; border-top-left-radius: 20px; border-top-right-radius: 20px;
+      width: 100%; max-width: 550px; max-height: 85vh; overflow-y: auto; padding: 16px;
+      border-top: 1px solid var(--border-color);
+    }
+    .form-group { margin-bottom: 10px; }
+    .form-group label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 4px; font-weight: 600; }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%; background: #090d16; border: 1px solid var(--border-color);
+      border-radius: 8px; padding: 8px 10px; color: #fff; font-size: 12px; outline: none;
+    }
+    .btn-submit { width: 100%; background: var(--accent-blue); color: #fff; border: none; padding: 10px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; margin-top: 8px; }
+
+    /* ── BOTTOM NAVIGATION ── */
+    #bottom-nav {
+      height: var(--nav-height); background: #04060c; border-top: 1px solid var(--border-color);
+      display: flex; position: fixed; bottom: 0; left: 0; right: 0; z-index: 2000;
+    }
+    .nav-item {
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      color: var(--text-muted); font-size: 9px; font-weight: 600; gap: 2px; cursor: pointer;
+    }
+    .nav-item .icon { font-size: 16px; }
+    .nav-item.active { color: var(--accent-blue); }
+
+    .fab-gps {
+      position: absolute; right: 14px; bottom: 16px; width: 46px; height: 46px;
+      border-radius: 50%; background: var(--accent-blue); color: #fff; display: flex;
+      align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+      z-index: 1500; border: 2px solid rgba(255,255,255,0.2); cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOADING INITIAL OVERLAY -->
+  <div id="loading-overlay">
+    <div class="spinner"></div>
+    <h3 style="font-size: 16px; color: #fff; margin-bottom: 6px;" id="lbl-load-title">Inicializando Banco Offline...</h3>
+    <p style="font-size: 12px; color: var(--text-muted);" id="lbl-load-sub">Carregando dataset de 48.182 clientes em alta velocidade</p>
+  </div>
+
+  <!-- HEADER -->
+  <header id="app-header">
+    <div class="header-top">
+      <div class="brand">
+        <div class="brand-icon">🗺️</div>
+        <div>
+          <div>Mapa Interativo Pro</div>
+          <div style="font-size: 9px; color: var(--text-muted); font-weight: normal;" id="lbl-total-count">Carregando...</div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 6px; align-items: center;">
+        <div id="btn-user-switch" class="user-pill" onclick="openUserModal()">
+          <span>👤</span> <span id="lbl-user-name">Admin</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="search-bar-row">
+      <div class="search-input-wrap">
+        <input type="text" id="inp-search" placeholder="🔍 Nome, CNPJ, Cidade, Filial, CNAE..." autocomplete="off"/>
+        <span id="btn-clear-search" class="search-clear">✕</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- QUICK TOOLBAR -->
+  <div id="quick-toolbar">
+    <button id="btn-gps-my" class="btn-tb active" onclick="triggerGPS()">📍 Minha Posição</button>
+    <button id="btn-gps-city" class="btn-tb" onclick="simularPosicaoCidade()">🏙️ Cidade</button>
+    <button id="btn-add-photo-pin" class="btn-tb" style="color: var(--accent-pink); border-color: rgba(236,72,153,0.4);" onclick="openPhotoPinModal()">📷 Foto GPS</button>
+    
+    <select id="sel-radius" class="select-tb">
+      <option value="0.5">500 m</option>
+      <option value="1" selected>Raio: 1 km</option>
+      <option value="3">Raio: 3 km</option>
+      <option value="5">Raio: 5 km</option>
+      <option value="10">Raio: 10 km</option>
+      <option value="25">Raio: 25 km</option>
+      <option value="9999">Todos</option>
+    </select>
+
+    <select id="sel-cnae" class="select-tb" style="color: var(--accent-green);">
+      <option value="">CNAE: Todos</option>
+      <option value="TARGET" selected>🎯 Alvo (Varejo/Food)</option>
+    </select>
+
+    <select id="sel-filial" class="select-tb">
+      <option value="">Filial: Todas</option>
+    </select>
+
+    <select id="sel-status" class="select-tb">
+      <option value="">Status: Todos</option>
+      <option value="ATIVO" selected>ATIVOS</option>
+      <option value="INATIVO">INATIVOS</option>
+    </select>
+  </div>
+
+  <!-- MAIN CONTENT VIEWS -->
+  <main id="main-content">
+    
+    <!-- VIEW 1: MAPA -->
+    <section id="view-map" class="view-panel active">
+      <div id="map-container">
+        <div id="map"></div>
+        <button id="fab-recenter" class="fab-gps">🎯</button>
+      </div>
+    </section>
+
+    <!-- VIEW 2: LISTA DE PRÓXIMOS -->
+    <section id="view-list" class="view-panel">
+      <div id="list-container">
+        <div class="list-summary">
+          <span id="lbl-list-count">Exibindo clientes próximos</span>
+          <span id="lbl-gps-ref" style="font-size: 10px; color: var(--accent-blue);">GPS: Ativo</span>
+        </div>
+        <div id="cards-wrapper"></div>
+      </div>
+    </section>
+
+    <!-- VIEW 3: RADAR -->
+    <section id="view-radar" class="view-panel">
+      <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; padding:20px; background:#04070f;">
+        <canvas id="radar-canvas" width="340" height="340" style="border-radius:50%; background:radial-gradient(circle, #0f172a 0%, #030712 100%);"></canvas>
+        <div style="position:absolute; bottom:20px; background:rgba(15,23,42,0.85); border:1px solid var(--border-color); padding:8px 16px; border-radius:20px; font-size:12px; backdrop-filter:blur(8px); color:var(--accent-blue); font-weight:600;" id="radar-lbl-status">Radar de Proximidade</div>
+      </div>
+    </section>
+
+    <!-- VIEW 4: FOTOS & PINOS NO GPS -->
+    <section id="view-photos" class="view-panel">
+      <div style="padding: 14px; overflow-y: auto; flex: 1;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <h3 style="font-size: 15px; color: var(--accent-pink);">📷 Pinos com Foto e Marcadores no GPS</h3>
+          <button onclick="openPhotoPinModal()" style="background:var(--accent-pink); color:#fff; border:none; padding:6px 12px; border-radius:8px; font-size:11px; font-weight:bold; cursor:pointer;">+ Nova Foto</button>
+        </div>
+        <div id="photo-pins-list"></div>
+      </div>
+    </section>
+
+    <!-- VIEW 5: REGISTRO DE VISITAS -->
+    <section id="view-visitas" class="view-panel">
+      <div style="padding: 14px; overflow-y: auto; flex: 1;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <h3 style="font-size: 15px; color: var(--accent-purple);">📝 Histórico de Visitas Registradas</h3>
+          <button id="btn-export-visits" style="background:#059669; color:#fff; border:none; padding:6px 12px; border-radius:8px; font-size:11px; font-weight:bold; cursor:pointer;">📥 Exportar Excel</button>
+        </div>
+        <div id="visit-history-list"></div>
+      </div>
+    </section>
+
+    <!-- VIEW 6: GOOGLE ENRICHMENT -->
+    <section id="view-google" class="view-panel">
+      <div style="padding: 14px; overflow-y: auto; flex: 1;">
+        <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent-blue);">🌐 Pesquisar no Google Maps & Lugares</h3>
+        <div style="background: rgba(59,130,246,0.1); padding: 12px; border-radius: 10px; border: 1px solid rgba(59,130,246,0.3); margin-bottom: 16px;">
+          <label style="color: #60a5fa; font-size: 11px; font-weight: bold; display: block; margin-bottom: 4px;">🔍 Buscar Empresa no Google / OpenStreetMap</label>
+          <div style="display: flex; gap: 6px;">
+            <input type="text" id="inp-google-query" style="flex:1; background:#090d16; border:1px solid var(--border-color); padding:8px; border-radius:6px; color:#fff; font-size:12px;" placeholder="Ex: Supermercado Toledo PR"/>
+            <button id="btn-search-google" style="background: var(--accent-blue); color:#fff; border:none; padding: 0 12px; border-radius: 6px; font-weight: bold; cursor: pointer;">Buscar</button>
+          </div>
+          <div id="google-results-box" style="margin-top: 10px; font-size: 12px;"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 7: GESTÃO & USUÁRIOS (ADMIN) -->
+    <section id="view-admin" class="view-panel">
+      <div style="padding: 14px; overflow-y: auto; flex: 1;">
+        <h3 style="font-size: 15px; margin-bottom: 12px; color: var(--accent-orange);">👥 Gerenciamento de Usuários e Acessos</h3>
+        
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px; margin-bottom: 16px;">
+          <h4 style="font-size: 13px; color: #fff; margin-bottom: 10px;">➕ Cadastrar / Editar Usuário</h4>
+          <form id="form-user-admin">
+            <div class="form-group">
+              <label>Nome do Usuário *</label>
+              <input type="text" id="uadmin-name" required placeholder="Ex: Vendedor João (Toledo)"/>
+            </div>
+            <div class="form-group">
+              <label>Escopo Geográfico de Clientes *</label>
+              <select id="uadmin-scope" required>
+                <option value="BRASIL">🇧🇷 Brasil Inteiro (Acesso Total)</option>
+                <option value="FILIAL">🏢 Restrito a uma Filial Especifica</option>
+              </select>
+            </div>
+            <div class="form-group" id="uadmin-filial-wrap" style="display: none;">
+              <label>Selecione a Filial Permitida</label>
+              <select id="uadmin-filial-val"></select>
+            </div>
+            <div class="form-group">
+              <label>Módulos Permiti dos para este Usuário:</label>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 11px; margin-top: 4px;">
+                <label><input type="checkbox" id="chk-mod-map" checked/> 🗺️ Mapa</label>
+                <label><input type="checkbox" id="chk-mod-list" checked/> 📋 Próximos</label>
+                <label><input type="checkbox" id="chk-mod-radar" checked/> 🎯 Radar</label>
+                <label><input type="checkbox" id="chk-mod-photos" checked/> 📷 Fotos GPS</label>
+                <label><input type="checkbox" id="chk-mod-visitas" checked/> 📝 Visitas</label>
+                <label><input type="checkbox" id="chk-mod-google" checked/> 🌐 Google</label>
+              </div>
+            </div>
+            <button type="submit" class="btn-submit" style="background: var(--accent-orange);">💾 Salvar Permissões do Usuário</button>
+          </form>
+        </div>
+
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px;">
+          <h4 style="font-size: 13px; color: #fff; margin-bottom: 8px;">📋 Usuários Cadastrados</h4>
+          <div id="users-list-box"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL FICHA COMPLETA DO CLIENTE (37 CAMPOS) -->
+  <div id="modal-dossier">
+    <div class="dossier-box">
+      <div class="dossier-header">
+        <div>
+          <h3 id="dos-title" style="font-size: 15px; color: #fff;">Razão Social do Cliente</h3>
+          <div id="dos-sub" style="font-size: 11px; color: var(--text-muted);">CNPJ · Filial</div>
+        </div>
+        <button onclick="closeDossierModal()" style="background:none; border:none; color:var(--text-muted); font-size:22px; cursor:pointer;">✕</button>
+      </div>
+      
+      <div class="dossier-tabs">
+        <div class="dtab active" data-dtab="dos-tab-geral">🏢 Geral & Contato</div>
+        <div class="dtab" data-dtab="dos-tab-rf">⚖️ Receita Federal & QSA</div>
+        <div class="dtab" data-dtab="dos-tab-fin">📊 Financeiro & Indicadores</div>
+        <div class="dtab" data-dtab="dos-tab-history">📝 Histórico de Visitas</div>
+      </div>
+
+      <div class="dossier-body">
+        <!-- TAB 1: GERAL -->
+        <div id="dos-tab-geral" class="dtab-content">
+          <div class="info-grid">
+            <div class="info-item"><label>Nome Fantasia</label><val id="d-c"></val></div>
+            <div class="info-item"><label>Razão Social</label><val id="d-r"></val></div>
+            <div class="info-item"><label>CNPJ</label><val id="d-j"></val></div>
+            <div class="info-item"><label>Status Interno</label><val id="d-s"></val></div>
+            <div class="info-item"><label>Filial / Código</label><val id="d-f"></val></div>
+            <div class="info-item"><label>Telefone</label><val id="d-t"></val></div>
+            <div class="info-item"><label>E-mail</label><val id="d-email"></val></div>
+            <div class="info-item"><label>Endereço</label><val id="d-e"></val></div>
+            <div class="info-item"><label>CEP / Cidade / UF</label><val id="d-m"></val></div>
+          </div>
+        </div>
+        <!-- TAB 2: RECEITA FEDERAL -->
+        <div id="dos-tab-rf" class="dtab-content" style="display:none;">
+          <div class="info-grid">
+            <div class="info-item"><label>Situação Cadastral RF</label><val id="d-sitrf" style="color:var(--accent-green); font-weight:bold;"></val></div>
+            <div class="info-item"><label>CNAE Principal</label><val id="d-cnae"></val></div>
+            <div class="info-item"><label>Data Abertura RF</label><val id="d-dtab"></val></div>
+            <div class="info-item"><label>Capital Social</label><val id="d-capsoc"></val></div>
+            <div class="info-item"><label>Natureza Jurídica</label><val id="d-natjur"></val></div>
+            <div class="info-item"><label>Quadro de Sócios (QSA)</label><val id="d-socios"></val></div>
+            <div class="info-item" style="grid-column: 1 / -1;"><label>CNAEs Secundários</label><val id="d-cnaesec"></val></div>
+          </div>
+        </div>
+        <!-- TAB 3: FINANCEIRO -->
+        <div id="dos-tab-fin" class="dtab-content" style="display:none;">
+          <div class="info-grid">
+            <div class="info-item"><label>Última Compra</label><val id="d-du"></val></div>
+            <div class="info-item"><label>Valor Última Compra</label><val id="d-vu"></val></div>
+            <div class="info-item"><label>Valor Máximo</label><val id="d-vmax"></val></div>
+            <div class="info-item"><label>Limite de Crédito</label><val id="d-lim"></val></div>
+            <div class="info-item"><label>Prazo de Pagamento</label><val id="d-prazo"></val></div>
+            <div class="info-item"><label>Ramo de Atividade</label><val id="d-ativ"></val></div>
+            <div class="info-item"><label>PIB per Capita da Cidade</label><val id="d-pib"></val></div>
+            <div class="info-item"><label>População do Município</label><val id="d-pop"></val></div>
+            <div class="info-item" style="grid-column: 1 / -1;"><label>Observações do Sistema</label><val id="d-obs"></val></div>
+          </div>
+        </div>
+        <!-- TAB 4: HISTÓRICO -->
+        <div id="dos-tab-history" class="dtab-content" style="display:none;">
+          <div id="dos-history-box"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL REGISTRO DE VISITA -->
+  <div id="modal-visit" class="modal-sheet">
+    <div class="sheet-content">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 id="vmodal-client-name" style="font-size:14px; color:#fff;">Registrar Visita</h3>
+        <button onclick="closeVisitModal()" style="background:none; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;">✕</button>
+      </div>
+      <form id="form-log-visit">
+        <input type="hidden" id="vmodal-client-id"/>
+        <div class="form-group">
+          <label>Resultado da Visita *</label>
+          <select id="vmodal-status" required>
+            <option value="Visita Concluída">✅ Visita Concluída com Sucesso</option>
+            <option value="Venda Realizada">🛒 Venda / Pedido Realizado</option>
+            <option value="Proposta Entregue">📄 Proposta Comercial Entregue</option>
+            <option value="Cliente Ausente">🚪 Cliente Ausente / Fechado</option>
+            <option value="Retornar Depois">⏰ Retornar em outra data</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Tipo de Atendimento *</label>
+          <select id="vmodal-type" required>
+            <option value="Presencial">🚗 Presencial (No Local)</option>
+            <option value="Telefone">📞 Ligação Telefônica</option>
+            <option value="WhatsApp">💬 Mensagem WhatsApp</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Observações / Resumo da Visita *</label>
+          <textarea id="vmodal-notes" rows="4" required placeholder="Digite o resumo da conversa..."></textarea>
+        </div>
+        <button type="submit" class="btn-submit" style="background: var(--accent-purple);">💾 Salvar Visita</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL FOTO NO GPS -->
+  <div id="modal-photo-pin" class="modal-sheet">
+    <div class="sheet-content">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 style="font-size:14px; color:var(--accent-pink);">📷 Novo Pino com Foto no GPS</h3>
+        <button onclick="closePhotoPinModal()" style="background:none; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;">✕</button>
+      </div>
+      <form id="form-photo-pin">
+        <div class="form-group">
+          <label>Tirar ou Selecionar Foto da Câmera *</label>
+          <input type="file" id="photo-input" accept="image/*" capture="environment" required/>
+          <div id="photo-preview-box" style="margin-top:6px; display:none; text-align:center;">
+            <img id="photo-preview-img" style="max-height:140px; border-radius:8px; border:1px solid var(--border-color);"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Categoria do Ponto *</label>
+          <select id="photo-cat" required>
+            <option value="🔥 Prospect Novo">🔥 Prospect Novo (Novo Cliente)</option>
+            <option value="🏢 Concorrente">🏢 Concorrente Detectado</option>
+            <option value="⚠️ Cliente em Obras">⚠️ Cliente em Obras / Reforma</option>
+            <option value="📌 Ponto de Interesse">📌 Ponto de Interesse / Visita</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Título / Nome do Local *</label>
+          <input type="text" id="photo-title" required placeholder="Ex: Mercado Express Toledo"/>
+        </div>
+        <div class="form-group">
+          <label>Comentários & Anotações *</label>
+          <textarea id="photo-comments" rows="3" required placeholder="Escreva os detalhes sobre esta foto e local..."></textarea>
+        </div>
+        <button type="submit" class="btn-submit" style="background: var(--accent-pink);">💾 Salvar Foto com GPS</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAVIGATION -->
+  <nav id="bottom-nav">
+    <div class="nav-item active" data-tab="view-map" id="nav-mod-map">
+      <span class="icon">🗺️</span><span>Mapa</span>
+    </div>
+    <div class="nav-item" data-tab="view-list" id="nav-mod-list">
+      <span class="icon">📋</span><span>Próximos</span>
+    </div>
+    <div class="nav-item" data-tab="view-radar" id="nav-mod-radar">
+      <span class="icon">🎯</span><span>Radar</span>
+    </div>
+    <div class="nav-item" data-tab="view-photos" id="nav-mod-photos">
+      <span class="icon">📷</span><span>Fotos</span>
+    </div>
+    <div class="nav-item" data-tab="view-visitas" id="nav-mod-visitas">
+      <span class="icon">📝</span><span>Visitas</span>
+    </div>
+    <div class="nav-item" data-tab="view-google" id="nav-mod-google">
+      <span class="icon">🌐</span><span>Google</span>
+    </div>
+    <div class="nav-item" data-tab="view-admin" id="nav-mod-admin">
+      <span class="icon">👥</span><span>Gestão</span>
+    </div>
+  </nav>
+
+  <!-- JS EXTERNO -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="clientes_data.js"></script>
+
+  <!-- LÓGICA PRINCIPAL DO APP -->
+  <script>
+    const STATE = {
+      rawClients: [],
+      activeClients: [],
+      photoPins: [],
+      visitLogs: [],
+      users: [],
+      currentUser: { id: 'admin', name: 'Administrador Master', scope: 'BRASIL', filial: '', mods: ['map','list','radar','photos','visitas','google','admin'] },
+      userPos: null,
+      map: null,
+      markerCluster: null,
+      userMarker: null,
+      activeRadiusKm: 1.0,
+      activeFilial: "",
+      activeStatus: "ATIVO",
+      activeCnae: "TARGET",
+      searchTerm: ""
+    };
+
+    const CIDADES_PARANA = [
+      { name: "Toledo - Centro", lat: -24.7349, lng: -53.7410 },
+      { name: "Cascavel - Centro", lat: -24.9558, lng: -53.4552 },
+      { name: "Foz do Iguaçu", lat: -25.5163, lng: -54.5854 },
+      { name: "Marechal Cândido Rondon", lat: -24.5562, lng: -54.0569 },
+      { name: "Maringá - Centro", lat: -23.4205, lng: -51.9333 },
+      { name: "Londrina - Centro", lat: -23.3103, lng: -51.1628 }
+    ];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initApp();
+    });
+
+    function initApp() {
+      // 1. IndexedDB Cache-First Engine
+      initIndexedDBData();
+    }
+
+    function initIndexedDBData() {
+      const lblTitle = document.getElementById('lbl-load-title');
+      
+      // Carrega usuários e fotos salvos
+      try {
+        const u = localStorage.getItem('MAPA_USERS');
+        if (u) STATE.users = JSON.parse(u);
+        else {
+          STATE.users = [
+            { id: 'admin', name: 'Administrador Master', scope: 'BRASIL', filial: '', mods: ['map','list','radar','photos','visitas','google','admin'] },
+            { id: 'vendedor_toledo', name: 'Vendedor Toledo (Filial ABC1)', scope: 'FILIAL', filial: 'ABC1', mods: ['map','list','radar','photos','visitas'] },
+            { id: 'apenas_mapa', name: 'Consulta (Apenas Mapa)', scope: 'BRASIL', filial: '', mods: ['map'] }
+          ];
+        }
+
+        const p = localStorage.getItem('MAPA_PHOTO_PINS');
+        if (p) STATE.photoPins = JSON.parse(p);
+
+        const v = localStorage.getItem('MAPA_VISITAS');
+        if (v) STATE.visitLogs = JSON.parse(v);
+      } catch (e) {}
+
+      if (window.CLIENTES_PRELOAD && Array.isArray(window.CLIENTES_PRELOAD)) {
+        STATE.rawClients = window.CLIENTES_PRELOAD;
+        onDataReady();
+      } else {
+        lblTitle.innerText = "Carregando clientes...";
+        setTimeout(onDataReady, 500);
+      }
+    }
+
+    function onDataReady() {
+      document.getElementById('loading-overlay').style.display = 'none';
+      initMap();
+      populateFiliaisDropdown();
+      applyUserPermissions();
+      applyFilters();
+      renderPhotoPins();
+      renderVisitHistory();
+      renderUsersAdmin();
+    }
+
+    function populateFiliaisDropdown() {
+      const set = new Set();
+      STATE.rawClients.forEach(c => { if (c.f) set.add(c.f); });
+      const sel = document.getElementById('sel-filial');
+      const uwrap = document.getElementById('uadmin-filial-val');
+      sel.innerHTML = '<option value="">Filial: Todas</option>';
+      uwrap.innerHTML = '';
+      Array.from(set).sort().forEach(f => {
+        sel.appendChild(new Option(`Filial: ${f}`, f));
+        uwrap.appendChild(new Option(`Filial ${f}`, f));
+      });
+    }
+
+    // ── PERMISSÕES E ESCOPO DO USUÁRIO (RBAC) ──
+    function applyUserPermissions() {
+      const u = STATE.currentUser;
+      document.getElementById('lbl-user-name').innerText = u.name;
+
+      // Oculta abas não permitidas
+      const mods = u.mods || ['map','list'];
+      const navIds = ['map','list','radar','photos','visitas','google','admin'];
+      
+      navIds.forEach(m => {
+        const el = document.getElementById(`nav-mod-${m}`);
+        if (el) {
+          if (mods.includes(m)) el.style.display = 'flex';
+          else el.style.display = 'none';
+        }
+      });
+
+      // Se usuário tem escopo de Filial, trava a seleção de filial
+      const selFilial = document.getElementById('sel-filial');
+      if (u.scope === 'FILIAL' && u.filial) {
+        STATE.activeFilial = u.filial;
+        selFilial.value = u.filial;
+        selFilial.disabled = true;
+      } else {
+        selFilial.disabled = false;
+      }
+    }
+
+    function openUserModal() {
+      let promptMsg = "Selecione o Usuário para alternar perfil:\n\n";
+      STATE.users.forEach((u, idx) => {
+        promptMsg += `${idx + 1}. ${u.name} [Escopo: ${u.scope}]\n`;
+      });
+      const choice = prompt(promptMsg, "1");
+      if (choice && !isNaN(choice)) {
+        const idx = parseInt(choice) - 1;
+        if (STATE.users[idx]) {
+          STATE.currentUser = STATE.users[idx];
+          applyUserPermissions();
+          applyFilters();
+          alert(`Perfil alterado para: ${STATE.currentUser.name}`);
+        }
+      }
+    }
+
+    // ── MAPA & GPS ──
+    function initMap() {
+      STATE.map = L.map('map', { zoomControl: false, attributionControl: false }).setView([-24.7349, -53.7410], 12);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(STATE.map);
+
+      if (typeof L.markerClusterGroup === 'function') {
+        STATE.markerCluster = L.markerClusterGroup({ chunkedLoading: true, maxClusterRadius: 50 });
+        STATE.map.addLayer(STATE.markerCluster);
+      }
+
+      STATE.map.on('click', (e) => {
+        if (confirm('Definir esta posição no mapa como sua localização atual?')) {
+          updateUserLocation(e.latlng.lat, e.latlng.lng, 10);
+        }
+      });
+
+      triggerGPS();
+    }
+
+    function triggerGPS() {
+      if (!navigator.geolocation) return;
+      navigator.geolocation.getCurrentPosition(
+        (pos) => updateUserLocation(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy),
+        (err) => console.warn(err),
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    }
+
+    function simularPosicaoCidade() {
+      let msg = "Escolha a cidade para simular localização:\n\n";
+      CIDADES_PARANA.forEach((c, idx) => msg += `${idx + 1}. ${c.name}\n`);
+      const choice = prompt(msg, "1");
+      if (choice && CIDADES_PARANA[parseInt(choice)-1]) {
+        const c = CIDADES_PARANA[parseInt(choice)-1];
+        updateUserLocation(c.lat, c.lng, 20);
+      }
+    }
+
+    function updateUserLocation(lat, lng, accuracy) {
+      STATE.userPos = { lat, lng, accuracy };
+      document.getElementById('lbl-gps-ref').innerText = `GPS: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+
+      if (STATE.map) {
+        if (!STATE.userMarker) {
+          const icon = L.divIcon({ className: 'custom-user-pin', html: `<div style="width:18px;height:18px;background:#3b82f6;border:3px solid #fff;border-radius:50%;box-shadow:0 0 12px #3b82f6;"></div>`, iconSize: [18,18], iconAnchor: [9,9] });
+          STATE.userMarker = L.marker([lat, lng], { icon, zIndexOffset: 1000 }).addTo(STATE.map);
+          STATE.map.setView([lat, lng], 14);
+        } else {
+          STATE.userMarker.setLatLng([lat, lng]);
+          STATE.map.setView([lat, lng], 14);
+        }
+      }
+      applyFilters();
+    }
+
+    function haversineDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+    }
+
+    function formatDistance(distKm) {
+      if (distKm < 1) return `${Math.round(distKm * 1000)} m`;
+      return `${distKm.toFixed(1)} km`;
+    }
+
+    // ── FILTRAGEM & RENDERIZAÇÃO ──
+    function applyFilters() {
+      const term = STATE.searchTerm.toLowerCase().trim();
+      const radius = STATE.activeRadiusKm;
+      const filial = STATE.activeFilial;
+      const status = STATE.activeStatus;
+      const cnaeFilter = STATE.activeCnae;
+      const userLat = STATE.userPos ? STATE.userPos.lat : null;
+      const userLng = STATE.userPos ? STATE.userPos.lng : null;
+
+      let filtered = [];
+
+      for (let i = 0; i < STATE.rawClients.length; i++) {
+        const c = STATE.rawClients[i];
+
+        if (status && c.s !== status) continue;
+        if (filial && c.f !== filial) continue;
+        if (cnaeFilter === 'TARGET' && !c.target) continue;
+
+        if (term) {
+          const match = 
+            (c.c && c.c.toLowerCase().includes(term)) ||
+            (c.r && c.r.toLowerCase().includes(term)) ||
+            (c.j && c.j.includes(term)) ||
+            (c.m && c.m.toLowerCase().includes(term)) ||
+            (c.cnae && c.cnae.toLowerCase().includes(term));
+          if (!match) continue;
+        }
+
+        let distKm = 99999;
+        if (userLat !== null && userLng !== null && c.lt !== null && c.lg !== null) {
+          const maxDelta = (radius === 9999) ? 180 : (radius * 0.015);
+          if (Math.abs(c.lt - userLat) <= maxDelta && Math.abs(c.lg - userLng) <= maxDelta) {
+            distKm = haversineDistance(userLat, userLng, c.lt, c.lg);
+          } else if (radius !== 9999) continue;
+        }
+
+        if (radius !== 9999 && userLat !== null && distKm > radius) continue;
+
+        c.distKm = distKm;
+        filtered.push(c);
+      }
+
+      if (userLat !== null) filtered.sort((a, b) => a.distKm - b.distKm);
+
+      STATE.activeClients = filtered;
+
+      document.getElementById('lbl-total-count').innerText = `${filtered.length.toLocaleString('pt-BR')} clientes (Escopo: ${STATE.currentUser.scope})`;
+      document.getElementById('lbl-list-count').innerText = `${filtered.length.toLocaleString('pt-BR')} clientes encontrados`;
+
+      renderMapMarkers();
+      renderListView();
+      renderRadarView();
+    }
+
+    function renderMapMarkers() {
+      if (!STATE.map || !STATE.markerCluster) return;
+      STATE.markerCluster.clearLayers();
+
+      const markers = [];
+      const list = STATE.activeClients.slice(0, 800);
+
+      list.forEach(c => {
+        if (c.lt === null || c.lg === null) return;
+
+        const pinColor = c.target ? '#10b981' : '#3b82f6';
+        const marker = L.circleMarker([c.lt, c.lg], { radius: 6.5, fillColor: pinColor, color: '#ffffff', weight: 1.5, fillOpacity: 0.85 });
+
+        const popHtml = `
+          <div style="font-size:12px; color:#0f172a; min-width:210px;">
+            <b style="font-size:13px; color:#1e293b;">${c.c}</b><br/>
+            <span style="color:#64748b;">CNPJ: ${c.j} · Filial: ${c.f}</span><br/>
+            <div style="margin-top:4px;">${c.e ? c.e + ' - ' : ''}${c.m}/${c.u}</div>
+            ${c.cnae ? `<div style="font-size:10px; color:#059669; margin-top:2px;">🎯 ${c.cnae.slice(0,40)}</div>` : ''}
+            ${c.distKm < 9999 ? `<div style="margin-top:4px; font-weight:bold; color:#3b82f6;">📏 Distância: ${formatDistance(c.distKm)}</div>` : ''}
+            <div style="margin-top:8px; display:flex; gap:4px; flex-wrap:wrap;">
+              <button onclick="openDossierModal('${c.id}')" style="background:#ec4899; color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">📄 Ficha Completa</button>
+              <button onclick="openVisitModal('${c.id}')" style="background:#8b5cf6; color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">📝 Registrar Visita</button>
+            </div>
+          </div>
+        `;
+        marker.bindPopup(popHtml);
+        markers.push(marker);
+      });
+
+      // Adiciona Pinos com Foto no Mapa
+      STATE.photoPins.forEach(p => {
+        const photoMarker = L.marker([p.lat, p.lng], {
+          icon: L.divIcon({ className: 'custom-photo-pin', html: `<div style="background:#ec4899; color:#fff; border:2px solid #fff; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center; font-size:12px; box-shadow:0 0 10px #ec4899;">📷</div>`, iconSize:[24,24] })
+        });
+        photoMarker.bindPopup(`<b>${p.title}</b><br/>${p.cat}<br/><img src="${p.img}" style="max-width:150px; border-radius:6px; margin-top:4px;"/>`);
+        markers.push(photoMarker);
+      });
+
+      STATE.markerCluster.addLayers(markers);
+    }
+
+    function renderListView() {
+      const container = document.getElementById('cards-wrapper');
+      container.innerHTML = '';
+
+      const list = STATE.activeClients.slice(0, 150);
+
+      if (list.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:40px 10px; color:var(--text-muted);">Nenhum cliente encontrado com os filtros atuais.</div>`;
+        return;
+      }
+
+      let html = '';
+      list.forEach(c => {
+        const distStr = c.distKm < 9999 ? formatDistance(c.distKm) : 'Sem GPS';
+        const targetBadge = c.target ? `<span style="background:rgba(16,185,129,0.2); color:#34d399; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold;">🎯 ALVO</span>` : '';
+        
+        const cleanTel = c.t ? c.t.replace(/\D/g, '') : '';
+        const gmapsUrl = (c.lt && c.lg) ? `https://www.google.com/maps/dir/?api=1&destination=${c.lt},${c.lg}` : '#';
+        const wazeUrl = (c.lt && c.lg) ? `https://waze.com/ul?ll=${c.lt},${c.lg}&navigate=yes` : '#';
+
+        html += `
+          <div class="client-card">
+            <div class="card-head">
+              <div>
+                <div class="client-title">${c.c} ${targetBadge}</div>
+                <div class="client-sub">CNPJ: ${c.j || 'N/A'} · Filial: ${c.f}</div>
+              </div>
+              <span class="dist-badge">📍 ${distStr}</span>
+            </div>
+            
+            <div class="card-body-row">🏢 ${c.e ? c.e + ' — ' : ''}${c.m}/${c.u}</div>
+            ${c.cnae ? `<div class="card-body-row" style="color:#059669;">🏷️ ${c.cnae.slice(0,50)}</div>` : ''}
+
+            <div class="card-actions">
+              <button onclick="openDossierModal('${c.id}')" class="act-btn dossier">📄 Ver Tudo</button>
+              <a href="${gmapsUrl}" target="_blank" class="act-btn maps">🗺️ GPS Maps</a>
+              ${(c.lt && c.lg) ? `<a href="${wazeUrl}" target="_blank" class="act-btn waze">🧭 Waze</a>` : ''}
+              ${c.t ? `<a href="tel:${c.t}" class="act-btn call">📞 Ligar</a>` : ''}
+              ${cleanTel ? `<a href="https://wa.me/55${cleanTel}" target="_blank" class="act-btn wa">💬 Whats</a>` : ''}
+              <button onclick="openVisitModal('${c.id}')" class="act-btn log">📝 Visita</button>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    function renderRadarView() {
+      const canvas = document.getElementById('radar-canvas');
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width; const h = canvas.height;
+      const cx = w / 2; const cy = h / 2;
+
+      ctx.clearRect(0, 0, w, h);
+
+      ctx.strokeStyle = 'rgba(59, 130, 246, 0.25)';
+      ctx.lineWidth = 1;
+      [0.2, 0.4, 0.6, 0.8].forEach(rPct => {
+        ctx.beginPath(); ctx.arc(cx, cy, (w / 2 - 10) * rPct, 0, Math.PI * 2); ctx.stroke();
+      });
+
+      ctx.beginPath();
+      ctx.moveTo(cx, 10); ctx.lineTo(cx, h - 10);
+      ctx.moveTo(10, cy); ctx.lineTo(w - 10, cy);
+      ctx.stroke();
+
+      ctx.fillStyle = '#3b82f6'; ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI * 2); ctx.fill();
+
+      const userLat = STATE.userPos ? STATE.userPos.lat : null;
+      const userLng = STATE.userPos ? STATE.userPos.lng : null;
+
+      if (userLat === null) {
+        document.getElementById('radar-lbl-status').innerText = 'Radar: Selecione a localização GPS ou cidade';
+        return;
+      }
+
+      const radiusKm = STATE.activeRadiusKm === 9999 ? 25 : STATE.activeRadiusKm;
+      const list = STATE.activeClients.slice(0, 60);
+
+      document.getElementById('radar-lbl-status').innerText = `Radar (${radiusKm} km) · ${list.length} clientes em volta`;
+
+      list.forEach(c => {
+        if (c.lt === null || c.lg === null) return;
+        const d = c.distKm; if (d > radiusKm) return;
+        const angle = Math.atan2((c.lg - userLng), (c.lt - userLat));
+        const distPct = (d / radiusKm);
+        const maxR = (w / 2 - 20);
+        const px = cx + Math.sin(angle) * (maxR * distPct);
+        const py = cy - Math.cos(angle) * (maxR * distPct);
+
+        ctx.fillStyle = c.target ? '#10b981' : '#3b82f6';
+        ctx.beginPath(); ctx.arc(px, py, 4, 0, Math.PI * 2); ctx.fill();
+      });
+    }
+
+    // ── MODAL FICHA COMPLETA (37 CAMPOS) ──
+    window.openDossierModal = function(id) {
+      const c = STATE.rawClients.find(x => x.id == id);
+      if (!c) return;
+
+      document.getElementById('dos-title').innerText = c.c || c.r;
+      document.getElementById('dos-sub').innerText = `CNPJ: ${c.j} · Filial: ${c.f} · Status: ${c.s}`;
+
+      document.getElementById('d-c').innerText = c.c;
+      document.getElementById('d-r').innerText = c.r;
+      document.getElementById('d-j').innerText = c.j;
+      document.getElementById('d-s').innerText = c.s;
+      document.getElementById('d-f').innerText = c.f;
+      document.getElementById('d-t').innerText = c.t;
+      document.getElementById('d-email').innerText = c.email;
+      document.getElementById('d-e').innerText = c.e;
+      document.getElementById('d-m').innerText = `${c.m}/${c.u} (CEP: ${c.cep})`;
+
+      document.getElementById('d-sitrf').innerText = c.sit_rf;
+      document.getElementById('d-cnae').innerText = c.cnae;
+      document.getElementById('d-dtab').innerText = c.dtab;
+      document.getElementById('d-capsoc').innerText = `R$ ${c.cap_soc.toLocaleString('pt-BR')}`;
+      document.getElementById('d-natjur').innerText = c.nat_jur;
+      document.getElementById('d-socios').innerText = c.socios;
+      document.getElementById('d-cnaesec').innerText = c.cnae_sec;
+
+      document.getElementById('d-du').innerText = c.du;
+      document.getElementById('d-vu').innerText = `R$ ${c.vu.toLocaleString('pt-BR')}`;
+      document.getElementById('d-vmax').innerText = `R$ ${c.vmax.toLocaleString('pt-BR')}`;
+      document.getElementById('d-lim').innerText = `R$ ${c.lim.toLocaleString('pt-BR')}`;
+      document.getElementById('d-prazo').innerText = c.prazo;
+      document.getElementById('d-ativ').innerText = c.ativ;
+      document.getElementById('d-pib').innerText = `R$ ${c.pib.toLocaleString('pt-BR')}`;
+      document.getElementById('d-pop').innerText = `${c.pop.toLocaleString('pt-BR')} hab.`;
+      document.getElementById('d-obs').innerText = c.obs;
+
+      // Historico de visitas do cliente
+      const vlist = STATE.visitLogs.filter(x => x.clientId == id);
+      let vhtml = '';
+      if (vlist.length === 0) vhtml = '<div style="color:var(--text-muted);">Nenhuma visita registrada neste cliente.</div>';
+      else {
+        vlist.forEach(v => {
+          vhtml += `<div style="background:#162032; padding:8px; border-radius:6px; margin-bottom:6px;">
+            <b>${v.date}</b> - ${v.status} (${v.type})<br/>
+            <i>"${v.notes}"</i>
+          </div>`;
+        });
+      }
+      document.getElementById('dos-history-box').innerHTML = vhtml;
+
+      document.getElementById('modal-dossier').classList.add('active');
+    };
+
+    window.closeDossierModal = function() { document.getElementById('modal-dossier').classList.remove('active'); };
+
+    // Tabs Ficha Completa
+    document.querySelectorAll('.dtab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.dtab').forEach(x => x.classList.remove('active'));
+        document.querySelectorAll('.dtab-content').forEach(x => x.style.display = 'none');
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.dtab).style.display = 'block';
+      });
+    });
+
+    // ── MODAL PIN FOTO COM GPS ──
+    window.openPhotoPinModal = function() {
+      if (!STATE.userPos) {
+        alert('Ative sua localização GPS antes de salvar um pino com foto.');
+        triggerGPS();
+      }
+      document.getElementById('form-photo-pin').reset();
+      document.getElementById('photo-preview-box').style.display = 'none';
+      document.getElementById('modal-photo-pin').classList.add('active');
+    };
+    window.closePhotoPinModal = function() { document.getElementById('modal-photo-pin').classList.remove('active'); };
+
+    document.getElementById('photo-input').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          document.getElementById('photo-preview-img').src = evt.target.result;
+          document.getElementById('photo-preview-box').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    document.getElementById('form-photo-pin').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const img = document.getElementById('photo-preview-img').src;
+      const cat = document.getElementById('photo-cat').value;
+      const title = document.getElementById('photo-title').value;
+      const comments = document.getElementById('photo-comments').value;
+
+      const pin = {
+        id: 'PHOTO_' + Date.now(),
+        img, cat, title, comments,
+        lat: STATE.userPos.lat,
+        lng: STATE.userPos.lng,
+        date: new Date().toLocaleString('pt-BR')
+      };
+
+      STATE.photoPins.unshift(pin);
+      localStorage.setItem('MAPA_PHOTO_PINS', JSON.stringify(STATE.photoPins));
+
+      alert('Pino com foto salvo com sucesso no GPS!');
+      closePhotoPinModal();
+      renderPhotoPins();
+      renderMapMarkers();
+    });
+
+    function renderPhotoPins() {
+      const box = document.getElementById('photo-pins-list');
+      if (STATE.photoPins.length === 0) {
+        box.innerHTML = `<div style="color:var(--text-muted); font-size:12px;">Nenhum pino de foto gravado. Clique em "+ Nova Foto" para capturar um local no GPS.</div>`;
+        return;
+      }
+      let html = '';
+      STATE.photoPins.forEach(p => {
+        html += `
+          <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:10px; margin-bottom:10px; display:flex; gap:10px;">
+            <img src="${p.img}" style="width:80px; height:80px; object-fit:cover; border-radius:8px;"/>
+            <div style="flex:1;">
+              <b style="color:#fff; font-size:13px;">${p.title}</b>
+              <div style="font-size:10px; color:var(--accent-pink); font-weight:bold;">${p.cat} · ${p.date}</div>
+              <div style="font-size:11px; color:#cbd5e1; margin-top:4px;">"${p.comments}"</div>
+              <div style="font-size:10px; color:var(--accent-blue); margin-top:2px;">📍 GPS: ${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}</div>
+            </div>
+          </div>
+        `;
+      });
+      box.innerHTML = html;
+    }
+
+    // ── MODAL VISITAS ──
+    window.openVisitModal = function(id) {
+      const c = STATE.rawClients.find(x => x.id == id);
+      if (!c) return;
+      document.getElementById('vmodal-client-id').value = c.id;
+      document.getElementById('vmodal-client-name').innerText = `📝 Visita: ${c.c}`;
+      document.getElementById('modal-visit').classList.add('active');
+    };
+    window.closeVisitModal = function() { document.getElementById('modal-visit').classList.remove('active'); };
+
+    document.getElementById('form-log-visit').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const cid = document.getElementById('vmodal-client-id').value;
+      const c = STATE.rawClients.find(x => x.id == cid);
+
+      const log = {
+        id: 'VISIT_' + Date.now(),
+        clientId: cid,
+        clientName: c ? c.c : '',
+        status: document.getElementById('vmodal-status').value,
+        type: document.getElementById('vmodal-type').value,
+        notes: document.getElementById('vmodal-notes').value,
+        date: new Date().toLocaleString('pt-BR')
+      };
+
+      STATE.visitLogs.unshift(log);
+      localStorage.setItem('MAPA_VISITAS', JSON.stringify(STATE.visitLogs));
+
+      alert('Visita salva!');
+      closeVisitModal();
+      renderVisitHistory();
+    });
+
+    function renderVisitHistory() {
+      const box = document.getElementById('visit-history-list');
+      if (STATE.visitLogs.length === 0) {
+        box.innerHTML = `<div style="color:var(--text-muted); font-size:12px;">Nenhuma visita registrada ainda.</div>`;
+        return;
+      }
+      let html = '';
+      STATE.visitLogs.forEach(v => {
+        html += `
+          <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; padding:8px; margin-bottom:6px;">
+            <b style="color:#fff; font-size:12px;">${v.clientName}</b> - <span style="color:var(--accent-green);">${v.status}</span> (${v.date})<br/>
+            <span style="font-size:11px; color:#cbd5e1;">"${v.notes}"</span>
+          </div>
+        `;
+      });
+      box.innerHTML = html;
+    }
+
+    // ── ADMIN USUÁRIOS ──
+    document.getElementById('uadmin-scope').addEventListener('change', (e) => {
+      document.getElementById('uadmin-filial-wrap').style.display = e.target.value === 'FILIAL' ? 'block' : 'none';
+    });
+
+    document.getElementById('form-user-admin').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('uadmin-name').value;
+      const scope = document.getElementById('uadmin-scope').value;
+      const filial = document.getElementById('uadmin-filial-val').value;
+
+      const mods = [];
+      if (document.getElementById('chk-mod-map').checked) mods.push('map');
+      if (document.getElementById('chk-mod-list').checked) mods.push('list');
+      if (document.getElementById('chk-mod-radar').checked) mods.push('radar');
+      if (document.getElementById('chk-mod-photos').checked) mods.push('photos');
+      if (document.getElementById('chk-mod-visitas').checked) mods.push('visitas');
+      if (document.getElementById('chk-mod-google').checked) mods.push('google');
+
+      const nu = { id: 'USR_' + Date.now(), name, scope, filial, mods };
+      STATE.users.push(nu);
+      localStorage.setItem('MAPA_USERS', JSON.stringify(STATE.users));
+
+      alert(`Usuário ${name} cadastrado!`);
+      document.getElementById('form-user-admin').reset();
+      renderUsersAdmin();
+    });
+
+    function renderUsersAdmin() {
+      const box = document.getElementById('users-list-box');
+      let html = '';
+      STATE.users.forEach(u => {
+        html += `
+          <div style="background:#090d16; border:1px solid var(--border-color); padding:8px; border-radius:6px; margin-top:6px; font-size:11px;">
+            <b style="color:#fff;">${u.name}</b> · <span style="color:var(--accent-orange);">Escopo: ${u.scope} ${u.filial ? '('+u.filial+')' : ''}</span><br/>
+            <span style="color:var(--text-muted);">Módulos: ${u.mods ? u.mods.join(', ') : 'Todos'}</span>
+          </div>
+        `;
+      });
+      box.innerHTML = html;
+    }
+
+    // ── SEARCH & LISTENERS ──
+    const inpSearch = document.getElementById('inp-search');
+    const btnClear = document.getElementById('btn-clear-search');
+    inpSearch.addEventListener('input', (e) => {
+      STATE.searchTerm = e.target.value;
+      btnClear.style.display = e.target.value ? 'block' : 'none';
+      applyFilters();
+    });
+    btnClear.addEventListener('click', () => {
+      inpSearch.value = ''; STATE.searchTerm = ''; btnClear.style.display = 'none'; applyFilters();
+    });
+
+    document.getElementById('sel-radius').addEventListener('change', (e) => { STATE.activeRadiusKm = parseFloat(e.target.value); applyFilters(); });
+    document.getElementById('sel-cnae').addEventListener('change', (e) => { STATE.activeCnae = e.target.value; applyFilters(); });
+    document.getElementById('sel-filial').addEventListener('change', (e) => { STATE.activeFilial = e.target.value; applyFilters(); });
+    document.getElementById('sel-status').addEventListener('change', (e) => { STATE.activeStatus = e.target.value; applyFilters(); });
+
+    document.querySelectorAll('#bottom-nav .nav-item').forEach(item => {
+      item.addEventListener('click', () => {
+        document.querySelectorAll('#bottom-nav .nav-item').forEach(x => x.classList.remove('active'));
+        document.querySelectorAll('.view-panel').forEach(x => x.classList.remove('active'));
+        item.classList.add('active');
+        const targetId = item.dataset.tab;
+        document.getElementById(targetId).classList.add('active');
+        if (targetId === 'view-map' && STATE.map) setTimeout(() => STATE.map.invalidateSize(), 200);
+      });
+    });
+  </script>
+</body>
+</html>
