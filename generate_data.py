@@ -27,7 +27,6 @@ def main():
     df['lat_clean'] = fix_lat_lon(df['lat'])
     df['lon_clean'] = fix_lat_lon(df['lon'])
 
-    # Validação Brasil (-35 <= lat <= 6, -75 <= lon <= -30)
     is_br_lat = (df['lat_clean'] >= -35.0) & (df['lat_clean'] <= 6.0)
     is_br_lon = (df['lon_clean'] >= -75.0) & (df['lon_clean'] <= -30.0)
     valid_geo = is_br_lat & is_br_lon
@@ -35,14 +34,12 @@ def main():
     df.loc[~valid_geo, 'lat_clean'] = None
     df.loc[~valid_geo, 'lon_clean'] = None
 
-    # Tratamento de Telefone e Data
     tel1 = df['telefone'].astype(str).str.strip().replace({'nan': '', 'None': '', 'NaN': ''})
     tel2 = df['rf_telefone'].astype(str).str.strip().replace({'nan': '', 'None': '', 'NaN': ''})
     df['tel_clean'] = tel1.where(tel1 != '', tel2)
 
     df['dt_clean'] = pd.to_datetime(df['data_ult'], errors='coerce').dt.strftime('%Y-%m-%d').fillna('')
 
-    # Mapeamento de CNAEs Alvo (Alimentício, Varejo, Bebidas, Padaria, Restaurante, Conveniência)
     cnae_str = df['cnae_principal'].fillna('').astype(str).str.lower()
     target_keywords = ['supermercado', 'minimercado', 'mercearia', 'padaria', 'confeitaria', 'bebida', 'restaurante', 'lanchonete', 'alimento', 'conveniencia', 'armazem']
     is_target_cnae = cnae_str.apply(lambda val: any(kw in val for kw in target_keywords))
@@ -92,57 +89,60 @@ def main():
 
         rec = {
             "id": c_code,
-            "c": nomes[i],                          # Nome Fantasia
-            "r": razoes[i],                         # Razão Social
-            "j": cnpjs[i],                          # CNPJ
-            "f": filiais[i],                        # Filial
-            "s": statuses[i],                       # Status (ATIVO/INATIVO)
-            "e": enderecos[i],                      # Endereço
-            "cep": ceps[i],                         # CEP
-            "m": cidades[i],                        # Cidade
-            "u": ufs[i] or "PR",                    # UF
-            "t": telefones[i],                      # Telefone
-            "email": emails[i] or rf_emails[i],     # Email
-            "du": dts[i],                           # Data Última Compra
-            "vu": float(vlrs[i]),                   # Valor Última Compra
-            "vmax": float(vlr_maxs[i]),             # Valor Máximo
-            "lim": float(limites[i]),               # Limite Crédito
-            "prazo": prazos[i],                     # Prazo
-            "ativ": atividades[i],                  # Atividade
-            "dtab": dt_aberturas[i],                # Data Abertura
-            "obs": obss[i],                         # Observações
-            "tipo": tipos[i],                       # Tipo Perfil
-            "sit_rf": situacoes_cnpj[i] or "ATIVA", # Situação CNPJ Receita Federal
-            "cnae": cnaes_princ[i],                 # CNAE Principal
-            "cnae_sec": cnaes_sec[i],               # CNAEs Secundários
-            "cap_soc": float(cap_sociais[i]),       # Capital Social
-            "nat_jur": naturezas[i],                # Natureza Jurídica
-            "socios": socios[i],                    # QSA / Sócios
-            "pop": int(pop_muns[i]),                # População Município
-            "pib": float(pib_pcs[i]),               # PIB per Capita
-            "target": bool(is_target_cnae[i]),      # CNAE Alvo
-            "lt": lt,                               # Latitude
-            "lg": lg                                # Longitude
+            "c": nomes[i],
+            "r": razoes[i],
+            "j": cnpjs[i],
+            "f": filiais[i],
+            "s": statuses[i],
+            "e": enderecos[i],
+            "cep": ceps[i],
+            "m": cidades[i],
+            "u": ufs[i] or "PR",
+            "t": telefones[i],
+            "email": emails[i] or rf_emails[i],
+            "du": dts[i],
+            "vu": float(vlrs[i]),
+            "vmax": float(vlr_maxs[i]),
+            "lim": float(limites[i]),
+            "prazo": prazos[i],
+            "ativ": atividades[i],
+            "dtab": dt_aberturas[i],
+            "obs": obss[i],
+            "tipo": tipos[i],
+            "sit_rf": situacoes_cnpj[i] or "ATIVA",
+            "cnae": cnaes_princ[i],
+            "cnae_sec": cnaes_sec[i],
+            "cap_soc": float(cap_sociais[i]),
+            "nat_jur": naturezas[i],
+            "socios": socios[i],
+            "pop": int(pop_muns[i]),
+            "pib": float(pib_pcs[i]),
+            "target": bool(is_target_cnae[i]),
+            "lt": lt,
+            "lg": lg
         }
         records.append(rec)
 
-    geo_count = sum(1 for r in records if r['lt'] is not None)
-    target_count = sum(1 for r in records if r['target'])
-    print(f"Total de registros: {len(records)}")
-    print(f"Com GPS válido: {geo_count} ({geo_count/len(records)*100:.1f}%)")
-    print(f"CNAE Alvo (Atendidos): {target_count} ({target_count/len(records)*100:.1f}%)")
+    # Remova os arquivos antigos > 25MB para não estourar o limite do Cloudflare
+    for old_file in ['clientes_data.json', 'clientes_data.js']:
+        old_path = os.path.join(os.path.dirname(__file__), old_file)
+        if os.path.exists(old_path):
+            os.remove(old_path)
+            print(f"Removido arquivo antigo: {old_file}")
 
-    json_path = os.path.join(os.path.dirname(__file__), 'clientes_data.json')
-    with open(json_path, 'w', encoding='utf-8') as f:
-        json.dump(records, f, ensure_ascii=False, separators=(',', ':'))
-    print(f"Criado {json_path} ({os.path.getsize(json_path)/(1024*1024):.2f} MB)")
+    # Dividir em 3 partes (< 14MB cada) para respeitar o limite de 25MB do Cloudflare Pages
+    total = len(records)
+    chunk_size = (total // 3) + 1
+    chunks = [records[i:i + chunk_size] for i in range(0, total, chunk_size)]
 
-    js_path = os.path.join(os.path.dirname(__file__), 'clientes_data.js')
-    with open(js_path, 'w', encoding='utf-8') as f:
-        f.write("window.CLIENTES_PRELOAD = ")
-        json.dump(records, f, ensure_ascii=False, separators=(',', ':'))
-        f.write(";\n")
-    print(f"Criado {js_path} ({os.path.getsize(js_path)/(1024*1024):.2f} MB)")
+    for idx, chunk in enumerate(chunks, 1):
+        js_chunk_path = os.path.join(os.path.dirname(__file__), f'clientes_part{idx}.js')
+        with open(js_chunk_path, 'w', encoding='utf-8') as f:
+            f.write(f"window.CLIENTES_PRELOAD = (window.CLIENTES_PRELOAD || []).concat(")
+            json.dump(chunk, f, ensure_ascii=False, separators=(',', ':'))
+            f.write(");\n")
+        size_mb = os.path.getsize(js_chunk_path) / (1024 * 1024)
+        print(f"Criado {js_chunk_path} ({size_mb:.2f} MB - OK Cloudflare < 25MB)")
 
 if __name__ == '__main__':
     main()
