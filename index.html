@@ -826,12 +826,15 @@
     };
 
     const CIDADES_PARANA = [
-      { name: "Toledo - Centro", lat: -24.7349, lng: -53.7410 },
-      { name: "Cascavel - Centro", lat: -24.9558, lng: -53.4552 },
-      { name: "Foz do Iguaçu", lat: -25.5163, lng: -54.5854 },
-      { name: "Marechal Cândido Rondon", lat: -24.5562, lng: -54.0569 },
-      { name: "Maringá - Centro", lat: -23.4205, lng: -51.9333 },
-      { name: "Londrina - Centro", lat: -23.3103, lng: -51.1628 }
+      { name: "Campo Grande - MS (Centro)", lat: -20.4697, lng: -54.6201 },
+      { name: "Dourados - MS", lat: -22.2231, lng: -54.8069 },
+      { name: "Três Lagoas - MS", lat: -20.7849, lng: -51.7007 },
+      { name: "Toledo - PR (Centro)", lat: -24.7349, lng: -53.7410 },
+      { name: "Cascavel - PR (Centro)", lat: -24.9558, lng: -53.4552 },
+      { name: "Foz do Iguaçu - PR", lat: -25.5163, lng: -54.5854 },
+      { name: "Maringá - PR (Centro)", lat: -23.4205, lng: -51.9333 },
+      { name: "Londrina - PR (Centro)", lat: -23.3103, lng: -51.1628 },
+      { name: "Curitiba - PR (Centro)", lat: -25.4284, lng: -49.2733 }
     ];
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -1385,14 +1388,11 @@
 
     // ── BUSCA GOOGLE AUTOMÁTICA & PROSPECÇÃO (OPENSTREETMAP / GOOGLE MAPS API) ──
     async function autoScanGoogleProspects(keyword = 'supermercado') {
-      let city = 'Toledo PR';
-      if (STATE.userPos) {
-        // Encontra a cidade dos clientes mais próximos
-        if (STATE.activeClients && STATE.activeClients[0]) {
-          city = `${STATE.activeClients[0].m} ${STATE.activeClients[0].u}`;
-        }
+      let city = 'Campo Grande, MS';
+      if (STATE.userPos && STATE.activeClients && STATE.activeClients[0]) {
+        city = `${STATE.activeClients[0].m}, ${STATE.activeClients[0].u}`;
       }
-      const query = `${keyword} em ${city}`;
+      const query = `${keyword}, ${city}`;
       document.getElementById('inp-google-query').value = query;
       await performGoogleSearch(query, keyword);
     }
@@ -1411,58 +1411,88 @@
       box.innerHTML = `
         <div style="background:rgba(59,130,246,0.1); border:1px solid var(--accent-blue); padding:16px; border-radius:12px; text-align:center; color:#fff;">
           <div class="spinner" style="margin: 0 auto 10px;"></div>
-          <b>🌐 Varrendo Google Maps na sua região...</b>
+          <b>🌐 Varrendo Google Maps & Base Interna...</b>
           <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">Pesquisando "${query}"...</div>
         </div>
       `;
 
+      // 1. Limpa a string substituindo " em " por ", " para o OpenStreetMap / Google Maps entender a cidade
+      const formattedQuery = query.replace(/\s+em\s+/gi, ', ').replace(/\s+-\s+/gi, ', ');
+
       try {
-        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=15&countrycodes=br&addressdetails=1`;
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formattedQuery)}&limit=15&countrycodes=br&addressdetails=1`;
         const resp = await fetch(url);
         const data = await resp.json();
 
-        if (!data || data.length === 0) {
-          box.innerHTML = `<div style="background:#121929; padding:14px; border-radius:10px; color:var(--text-muted); text-align:center;">Nenhum local retornado para "${query}".</div>`;
-          return;
+        // 2. Busca Clientes Cadastrados na Cidade correspondente na base interna (48k)
+        const qUpper = query.toUpperCase();
+        const internalMatches = STATE.rawClients.filter(c => {
+          if (!c.m) return false;
+          return qUpper.includes(c.m.toUpperCase()) || (c.c && c.c.toUpperCase().includes(qUpper));
+        }).slice(0, 10);
+
+        let html = '';
+
+        if (internalMatches.length > 0) {
+          html += `<div style="font-size:11px; font-weight:bold; color:var(--accent-blue); margin-bottom:6px;">📋 Clientes Cadastrados na Base Interna (${internalMatches.length} em Destaque):</div>`;
+          internalMatches.forEach(c => {
+            const cleanTel = c.t ? c.t.replace(/\D/g, '') : '';
+            html += `
+              <div style="background:rgba(30,41,59,0.9); border:1px solid #334155; border-radius:10px; padding:10px; margin-bottom:8px;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                  <b style="color:#fff; font-size:12px;">🏢 ${c.c}</b>
+                  <span style="background:rgba(16,185,129,0.2); color:#34d399; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold;">CLIENTE BASE (${c.f})</span>
+                </div>
+                <div style="font-size:10px; color:var(--text-muted); margin-top:2px;">CNPJ: ${c.j} · ${c.m}/${c.u}</div>
+                <div style="display:flex; gap:4px; margin-top:6px;">
+                  <button onclick="openDossierModal('${c.id}')" class="act-btn dossier" style="font-size:9px;">📄 Ficha Completa</button>
+                  ${cleanTel ? `<a href="https://wa.me/55${cleanTel}" target="_blank" class="act-btn wa" style="font-size:9px;">💬 Whats</a>` : ''}
+                </div>
+              </div>
+            `;
+          });
         }
 
-        let html = `<div style="font-size:12px; font-weight:bold; color:var(--accent-green); margin-bottom:10px;">🔥 Varredura Google: ${data.length} Locais Encontrados em "${query}":</div>`;
-        
-        data.forEach(item => {
-          const lat = parseFloat(item.lat);
-          const lon = parseFloat(item.lon);
-          const name = item.display_name.split(',')[0] || item.name || 'Estabelecimento Comercial';
-          const addr = item.display_name;
+        if (data && data.length > 0) {
+          html += `<div style="font-size:11px; font-weight:bold; color:var(--accent-green); margin-top:10px; margin-bottom:6px;">🌐 Varredura do Google Maps / OpenStreetMap (${data.length} Locais):</div>`;
+          
+          data.forEach(item => {
+            const lat = parseFloat(item.lat);
+            const lon = parseFloat(item.lon);
+            const name = item.display_name.split(',')[0] || item.name || 'Estabelecimento Comercial';
+            const addr = item.display_name;
 
-          // Verifica se este local já bate com algum cliente da base por nome ou endereço
-          const nameClean = name.toLowerCase().trim();
-          const existingClient = STATE.rawClients.find(c => {
-            if (!c.c) return false;
-            const cName = c.c.toLowerCase().trim();
-            return cName.includes(nameClean) || nameClean.includes(cName);
+            const nameClean = name.toLowerCase().trim();
+            const existingClient = STATE.rawClients.find(c => {
+              if (!c.c) return false;
+              const cName = c.c.toLowerCase().trim();
+              return cName.includes(nameClean) || nameClean.includes(cName);
+            });
+
+            const isCadastrado = !!existingClient;
+            const statusBadge = isCadastrado 
+              ? `<span style="background:rgba(16,185,129,0.2); color:#34d399; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:bold;">✅ JÁ É CLIENTE DA BASE (${existingClient.f})</span>`
+              : `<span style="background:rgba(236,72,153,0.2); color:#f472b6; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:bold;">🔥 NOVO PROSPECT GOOGLE</span>`;
+
+            html += `
+              <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:12px; margin-bottom:8px;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">
+                  <b style="color:#fff; font-size:13px;">🌐 ${name}</b>
+                  ${statusBadge}
+                </div>
+                <div style="font-size:11px; color:#cbd5e1; margin-top:2px;">📍 ${addr}</div>
+                <div style="font-size:10px; color:var(--accent-blue); margin-top:2px;">GPS: ${lat.toFixed(5)}, ${lon.toFixed(5)}</div>
+                <div style="display:flex; gap:6px; margin-top:8px;">
+                  <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lon}" target="_blank" class="act-btn maps">🗺️ Abrir no Google Maps</a>
+                  ${isCadastrado ? `<button onclick="openDossierModal('${existingClient.id}')" class="act-btn dossier">📄 Ver Ficha</button>` : ''}
+                  <button onclick="addGoogleAsProspect('${name.replace(/'/g, "")}', '${addr.replace(/'/g, "")}', ${lat}, ${lon})" class="act-btn" style="background:var(--accent-pink); color:#fff;">+ Salvar como Prospect</button>
+                </div>
+              </div>
+            `;
           });
-
-          const isCadastrado = !!existingClient;
-          const statusBadge = isCadastrado 
-            ? `<span style="background:rgba(16,185,129,0.2); color:#34d399; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:bold;">✅ JÁ É CLIENTE DA BASE (${existingClient.f})</span>`
-            : `<span style="background:rgba(236,72,153,0.2); color:#f472b6; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:bold;">🔥 NOVO PROSPECT GOOGLE (Não Cadastrado!)</span>`;
-
-          html += `
-            <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:12px; margin-bottom:8px;">
-              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">
-                <b style="color:#fff; font-size:13px;">🌐 ${name}</b>
-                ${statusBadge}
-              </div>
-              <div style="font-size:11px; color:#cbd5e1; margin-top:2px;">📍 ${addr}</div>
-              <div style="font-size:10px; color:var(--accent-blue); margin-top:2px;">GPS: ${lat.toFixed(5)}, ${lon.toFixed(5)}</div>
-              <div style="display:flex; gap:6px; margin-top:8px;">
-                <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lon}" target="_blank" class="act-btn maps">🗺️ Abrir no Google Maps</a>
-                ${isCadastrado ? `<button onclick="openDossierModal('${existingClient.id}')" class="act-btn dossier">📄 Ver Ficha</button>` : ''}
-                <button onclick="addGoogleAsProspect('${name.replace(/'/g, "")}', '${addr.replace(/'/g, "")}', ${lat}, ${lon})" class="act-btn" style="background:var(--accent-pink); color:#fff;">+ Salvar como Prospect</button>
-              </div>
-            </div>
-          `;
-        });
+        } else if (internalMatches.length === 0) {
+          html = `<div style="background:#121929; padding:14px; border-radius:10px; color:var(--text-muted); text-align:center;">Nenhum local retornado para "${query}". Tente buscar por "Supermercado, Campo Grande, MS".</div>`;
+        }
 
         box.innerHTML = html;
       } catch (err) {
