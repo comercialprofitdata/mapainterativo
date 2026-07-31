@@ -503,6 +503,10 @@
     <button id="btn-gps-my" class="btn-tb active" onclick="triggerGPS()">📍 Minha Posição</button>
     <button id="btn-gps-city" class="btn-tb" onclick="simularPosicaoCidade()">🏙️ Cidade</button>
     
+    <!-- Heatmap & Rota Otimizada -->
+    <button id="btn-heatmap" class="btn-tb" style="color: #f59e0b; border-color: rgba(245,158,11,0.5);" onclick="toggleHeatmap()">🔥 Heatmap (OFF)</button>
+    <button id="btn-route-opt" class="btn-tb" style="color: #10b981; border-color: rgba(16,185,129,0.5); font-weight: bold;" onclick="openRouteOptModal()">🧭 Rota Otimizada</button>
+
     <!-- Botão de Varredura Completa 1-Clique -->
     <button id="btn-scan-all-now" class="btn-tb" style="background: linear-gradient(135deg, #ec4899, #8b5cf6); color: #fff; font-weight: bold; border:none;" onclick="scanAllCategoriesNow()">⚡ Varrer Tudo (10 Segmentos)</button>
 
@@ -593,6 +597,76 @@
         </div>
 
         <div style="width:100%; max-width:440px; margin-top:10px;" id="radar-closest-list"></div>
+      </div>
+    </section>
+
+    <!-- VIEW DASHBOARD GERENCIAL (KPIs & BI) -->
+    <section id="view-dashboard" class="view-panel">
+      <div style="padding: 14px; overflow-y: auto; flex: 1;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <h3 style="font-size: 15px; color: #38bdf8; display:flex; align-items:center; gap:6px;">
+            <span>📊</span> <span>Dashboard Gerencial & KPIs</span>
+          </h3>
+          <button onclick="renderDashboard()" style="background:#1e293b; color:#fff; border:1px solid #334155; padding:6px 12px; border-radius:8px; font-size:11px; font-weight:bold; cursor:pointer;">🔄 Atualizar Dados</button>
+        </div>
+
+        <!-- KPI CARDS GRID -->
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:10px; margin-bottom:14px;">
+          <div style="background:#091122; border:1px solid #1e293b; border-radius:10px; padding:12px; text-align:center;">
+            <div style="font-size:20px; font-weight:800; color:#fff;" id="kpi-total-base">0</div>
+            <div style="font-size:10px; color:var(--text-muted); font-weight:600; margin-top:2px;">Clientes na Base</div>
+          </div>
+          <div style="background:#091122; border:1px solid #1e293b; border-radius:10px; padding:12px; text-align:center;">
+            <div style="font-size:20px; font-weight:800; color:#34d399;" id="kpi-target-cnae">0</div>
+            <div style="font-size:10px; color:var(--text-muted); font-weight:600; margin-top:2px;">Alvo Varejo (%)</div>
+          </div>
+          <div style="background:#091122; border:1px solid #1e293b; border-radius:10px; padding:12px; text-align:center;">
+            <div style="font-size:20px; font-weight:800; color:#a78bfa;" id="kpi-total-visits">0</div>
+            <div style="font-size:10px; color:var(--text-muted); font-weight:600; margin-top:2px;">Visitas Gravadas</div>
+          </div>
+          <div style="background:#091122; border:1px solid #1e293b; border-radius:10px; padding:12px; text-align:center;">
+            <div style="font-size:20px; font-weight:800; color:#f472b6;" id="kpi-prospects-count">0</div>
+            <div style="font-size:10px; color:var(--text-muted); font-weight:600; margin-top:2px;">Prospects Salvos</div>
+          </div>
+        </div>
+
+        <!-- ALERTAS INTELIGENTES BANNER -->
+        <div id="smart-alerts-container" style="margin-bottom:14px;"></div>
+
+        <!-- CHARTS GRID -->
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:14px; margin-bottom:14px;">
+          <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:12px; padding:14px;">
+            <div style="font-size:12px; font-weight:bold; color:#fff; margin-bottom:10px;">🏢 Clientes por Filial</div>
+            <div style="position:relative; height:200px;">
+              <canvas id="chart-filiais"></canvas>
+            </div>
+          </div>
+          <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:12px; padding:14px;">
+            <div style="font-size:12px; font-weight:bold; color:#fff; margin-bottom:10px;">🏙️ Top 10 Cidades com Mais Clientes</div>
+            <div style="position:relative; height:200px;">
+              <canvas id="chart-cities"></canvas>
+            </div>
+          </div>
+          <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:12px; padding:14px;">
+            <div style="font-size:12px; font-weight:bold; color:#fff; margin-bottom:10px;">📝 Visitas Registradas (Histórico)</div>
+            <div style="position:relative; height:200px;">
+              <canvas id="chart-visits-timeline"></canvas>
+            </div>
+          </div>
+          <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:12px; padding:14px;">
+            <div style="font-size:12px; font-weight:bold; color:#fff; margin-bottom:10px;">🏆 Ranking de Atividade por Vendedor</div>
+            <div style="position:relative; height:200px;">
+              <canvas id="chart-users-activity"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- COBERTURA REGIONAL POR CIDADE -->
+        <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:12px; padding:14px; margin-bottom:14px;">
+          <div style="font-size:12px; font-weight:bold; color:#fff; margin-bottom:10px;">📈 Cobertura Regional de Atendimento por Cidade</div>
+          <div id="regional-coverage-list"></div>
+        </div>
+
       </div>
     </section>
 
@@ -693,6 +767,7 @@
                 <label><input type="checkbox" id="chk-mod-map" checked/> 🗺️ Mapa</label>
                 <label><input type="checkbox" id="chk-mod-list" checked/> 📋 Próximos</label>
                 <label><input type="checkbox" id="chk-mod-radar" checked/> 🎯 Radar</label>
+                <label><input type="checkbox" id="chk-mod-dashboard" checked/> 📊 Dashboard</label>
                 <label><input type="checkbox" id="chk-mod-photos" checked/> 📷 Fotos GPS</label>
                 <label><input type="checkbox" id="chk-mod-visitas" checked/> 📝 Visitas</label>
                 <label><input type="checkbox" id="chk-mod-google" checked/> 🌐 Google</label>
@@ -903,6 +978,31 @@
     </div>
   </div>
 
+  <!-- MODAL ROTEIRIZAÇÃO INTELIGENTE (TSP) -->
+  <div id="modal-route-opt" class="modal-sheet">
+    <div class="sheet-content" style="border: 2px solid #10b981; box-shadow: 0 0 30px rgba(16,185,129,0.3);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 style="font-size:14px; color:#34d399; display:flex; align-items:center; gap:6px;">
+          <span>🧭</span> <span>Roteirização Inteligente (Menor Trajeto)</span>
+        </h3>
+        <button onclick="closeRouteOptModal()" style="background:none; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;">✕</button>
+      </div>
+
+      <div style="display:flex; gap:8px; align-items:center; margin-bottom:12px; background:#070d19; padding:10px; border-radius:8px; border:1px solid #1e293b;">
+        <label style="font-size:11px; color:#cbd5e1; white-space:nowrap;">Qtd de Paradas:</label>
+        <select id="sel-route-stops" onchange="calculateOptimizedRoute()" style="background:#121929; color:#fff; border:1px solid var(--border-color); padding:6px; border-radius:6px; font-size:12px;">
+          <option value="5">5 Clientes</option>
+          <option value="10" selected>10 Clientes</option>
+          <option value="15">15 Clientes</option>
+          <option value="20">20 Clientes</option>
+        </select>
+        <button onclick="calculateOptimizedRoute()" style="background:#10b981; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer; margin-left:auto;">Recalcular</button>
+      </div>
+
+      <div id="route-opt-results"></div>
+    </div>
+  </div>
+
   <!-- BOTTOM NAVIGATION -->
   <nav id="bottom-nav">
     <div class="nav-item active" data-tab="view-map" id="nav-mod-map">
@@ -913,6 +1013,9 @@
     </div>
     <div class="nav-item" data-tab="view-radar" id="nav-mod-radar">
       <span class="icon">🎯</span><span>Radar</span>
+    </div>
+    <div class="nav-item" data-tab="view-dashboard" id="nav-mod-dashboard">
+      <span class="icon">📊</span><span>Dashboard</span>
     </div>
     <div class="nav-item" data-tab="view-photos" id="nav-mod-photos">
       <span class="icon">📷</span><span>Fotos</span>
@@ -931,6 +1034,8 @@
   <!-- JS EXTERNO -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="clientes_part1.js"></script>
   <script src="clientes_part2.js"></script>
@@ -949,8 +1054,8 @@
   <!-- LÓGICA PRINCIPAL DO APP -->
   <script>
     const DEFAULT_USERS = [
-      { id: 'triunfante', username: 'triunfante', pass: 'abc123', name: 'Diretoria Triunfante (Master)', scope: 'BRASIL', filial: '', role: 'admin', mods: ['map','list','radar','photos','visitas','google','admin'] },
-      { id: 'TCG', username: 'TCG', pass: 'abc123', name: 'Vendedor TCG (Filial TCG)', scope: 'FILIAL', filial: 'TCG', role: 'vendedor', mods: ['map','list','radar','photos','visitas','google'] }
+      { id: 'triunfante', username: 'triunfante', pass: 'abc123', name: 'Diretoria Triunfante (Master)', scope: 'BRASIL', filial: '', role: 'admin', mods: ['map','list','radar','dashboard','photos','visitas','google','admin'] },
+      { id: 'TCG', username: 'TCG', pass: 'abc123', name: 'Vendedor TCG (Filial TCG)', scope: 'FILIAL', filial: 'TCG', role: 'vendedor', mods: ['map','list','radar','dashboard','photos','visitas','google'] }
     ];
 
     const STATE = {
@@ -973,8 +1078,59 @@
       radarSweepAngle: 0,
       googleProspects: [],
       showGoogleOnMap: true,
-      renderedBlips: []
+      renderedBlips: [],
+      heatLayer: null,
+      showHeatmap: false,
+      charts: {}
     };
+
+    // ── INDEXEDDB PERSISTÊNCIA ROBUSTA ──
+    const IDB = {
+      db: null,
+      async init() {
+        return new Promise((resolve) => {
+          if (!('indexedDB' in window)) return resolve();
+          const req = indexedDB.open('MapaVisitasDB', 1);
+          req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains('photoPins')) db.createObjectStore('photoPins', { keyPath: 'id' });
+            if (!db.objectStoreNames.contains('visitLogs')) db.createObjectStore('visitLogs', { keyPath: 'id' });
+          };
+          req.onsuccess = (e) => { this.db = e.target.result; resolve(); };
+          req.onerror = () => resolve();
+        });
+      },
+      async getStore(name) {
+        if (!this.db) return null;
+        return new Promise((resolve) => {
+          try {
+            const tx = this.db.transaction(name, 'readonly');
+            const req = tx.objectStore(name).getAll();
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => resolve(null);
+          } catch(e) { resolve(null); }
+        });
+      },
+      async saveStore(name, items) {
+        if (!this.db) return;
+        try {
+          const tx = this.db.transaction(name, 'readwrite');
+          const store = tx.objectStore(name);
+          store.clear();
+          items.forEach(i => store.put(i));
+        } catch(e) {}
+      }
+    };
+
+    function syncPhotoPins() {
+      localStorage.setItem('MAPA_PHOTO_PINS', JSON.stringify(STATE.photoPins));
+      IDB.saveStore('photoPins', STATE.photoPins);
+    }
+
+    function syncVisitLogs() {
+      localStorage.setItem('MAPA_VISITAS', JSON.stringify(STATE.visitLogs));
+      IDB.saveStore('visitLogs', STATE.visitLogs);
+    }
 
     const CIDADES_PARANA = [
       { name: "Campo Grande - MS (Centro)", lat: -20.4697, lng: -54.6201 },
@@ -992,13 +1148,14 @@
       initApp();
     });
 
-    function initApp() {
+    async function initApp() {
+      await IDB.init();
+
       // Carrega lista de usuários salvos
       try {
         const u = localStorage.getItem('MAPA_USERS');
         if (u) {
           const parsed = JSON.parse(u);
-          // Garanta que os usuários padrão triunfante e TCG existam
           DEFAULT_USERS.forEach(def => {
             if (!parsed.find(x => x.username.toLowerCase() === def.username.toLowerCase())) {
               parsed.push(def);
@@ -1010,11 +1167,19 @@
           localStorage.setItem('MAPA_USERS', JSON.stringify(DEFAULT_USERS));
         }
 
-        const p = localStorage.getItem('MAPA_PHOTO_PINS');
-        if (p) STATE.photoPins = JSON.parse(p);
+        const idbPhotos = await IDB.getStore('photoPins');
+        if (idbPhotos && idbPhotos.length > 0) STATE.photoPins = idbPhotos;
+        else {
+          const p = localStorage.getItem('MAPA_PHOTO_PINS');
+          if (p) STATE.photoPins = JSON.parse(p);
+        }
 
-        const v = localStorage.getItem('MAPA_VISITAS');
-        if (v) STATE.visitLogs = JSON.parse(v);
+        const idbVisits = await IDB.getStore('visitLogs');
+        if (idbVisits && idbVisits.length > 0) STATE.visitLogs = idbVisits;
+        else {
+          const v = localStorage.getItem('MAPA_VISITAS');
+          if (v) STATE.visitLogs = JSON.parse(v);
+        }
       } catch (e) {}
 
       // Verifica se há usuário logado na sessão
@@ -1127,8 +1292,8 @@
       document.getElementById('lbl-user-name').innerText = u.name || u.username;
 
       // Oculta abas não permitidas
-      const mods = u.mods || ['map','list','radar','photos','visitas','google'];
-      const navIds = ['map','list','radar','photos','visitas','google','admin'];
+      const mods = u.mods || ['map','list','radar','dashboard','photos','visitas','google'];
+      const navIds = ['map','list','radar','dashboard','photos','visitas','google','admin'];
       
       navIds.forEach(m => {
         const el = document.getElementById(`nav-mod-${m}`);
@@ -1147,6 +1312,350 @@
       } else {
         selFilial.disabled = false;
       }
+    }
+
+    // ── HEATMAP MAPA DE CALOR ──
+    function toggleHeatmap() {
+      STATE.showHeatmap = !STATE.showHeatmap;
+      const btn = document.getElementById('btn-heatmap');
+      if (STATE.showHeatmap) {
+        btn.style.background = 'rgba(245,158,11,0.2)';
+        btn.innerText = '🔥 Heatmap (ON)';
+        renderHeatmap();
+      } else {
+        btn.style.background = 'transparent';
+        btn.innerText = '🔥 Heatmap (OFF)';
+        if (STATE.heatLayer && STATE.map) {
+          STATE.map.removeLayer(STATE.heatLayer);
+          STATE.heatLayer = null;
+        }
+      }
+    }
+
+    function renderHeatmap() {
+      if (!STATE.showHeatmap || !STATE.map) return;
+      if (STATE.heatLayer) {
+        STATE.map.removeLayer(STATE.heatLayer);
+        STATE.heatLayer = null;
+      }
+      const points = [];
+      (STATE.activeClients || []).forEach(c => {
+        if (c.lt !== null && c.lg !== null) {
+          points.push([c.lt, c.lg, c.target ? 1.0 : 0.5]);
+        }
+      });
+      if (typeof L.heatLayer === 'function' && points.length > 0) {
+        STATE.heatLayer = L.heatLayer(points, { radius: 22, blur: 14, maxZoom: 16 });
+        STATE.heatLayer.addTo(STATE.map);
+      }
+    }
+
+    // ── ROTEIRIZAÇÃO INTELIGENTE (ALGORITMO TSP NEAREST NEIGHBOR) ──
+    function openRouteOptModal() {
+      const modal = document.getElementById('modal-route-opt');
+      if (modal) modal.classList.add('active');
+      calculateOptimizedRoute();
+    }
+
+    function closeRouteOptModal() {
+      const modal = document.getElementById('modal-route-opt');
+      if (modal) modal.classList.remove('active');
+    }
+
+    function calculateOptimizedRoute() {
+      const numStops = parseInt(document.getElementById('sel-route-stops') ? document.getElementById('sel-route-stops').value : 10);
+      const userLat = STATE.userPos ? STATE.userPos.lat : null;
+      const userLng = STATE.userPos ? STATE.userPos.lng : null;
+
+      const box = document.getElementById('route-opt-results');
+      if (!box) return;
+
+      if (!userLat || !userLng) {
+        box.innerHTML = `<div style="padding:14px; background:rgba(239,68,68,0.1); border:1px solid var(--accent-red); border-radius:8px; color:#fca5a5;">⚠️ Ative sua localização GPS ou selecione uma cidade para calcular a rota otimizada.</div>`;
+        return;
+      }
+
+      let pool = (STATE.activeClients || []).filter(c => c.lt !== null && c.lg !== null && c.distKm < 9999);
+      if (pool.length === 0) {
+        box.innerHTML = `<div style="padding:14px; background:#1e293b; border-radius:8px; color:var(--text-muted);">Nenhum cliente disponível no raio atual para roteirização.</div>`;
+        return;
+      }
+
+      let currentLat = userLat;
+      let currentLng = userLng;
+      let unvisited = [...pool];
+      let route = [];
+      let totalDist = 0;
+
+      for (let step = 0; step < numStops && unvisited.length > 0; step++) {
+        let nearestIdx = -1;
+        let minDist = Infinity;
+        for (let i = 0; i < unvisited.length; i++) {
+          const d = haversineDistance(currentLat, currentLng, unvisited[i].lt, unvisited[i].lg);
+          if (d < minDist) {
+            minDist = d;
+            nearestIdx = i;
+          }
+        }
+        if (nearestIdx >= 0) {
+          const nextClient = unvisited.splice(nearestIdx, 1)[0];
+          totalDist += minDist;
+          route.push({ client: nextClient, legDist: minDist });
+          currentLat = nextClient.lt;
+          currentLng = nextClient.lg;
+        }
+      }
+
+      if (route.length === 0) {
+        box.innerHTML = `<div style="color:var(--text-muted);">Nenhuma rota encontrada.</div>`;
+        return;
+      }
+
+      const originStr = `${userLat},${userLng}`;
+      const destClient = route[route.length - 1].client;
+      const destStr = `${destClient.lt},${destClient.lg}`;
+      
+      let waypoints = [];
+      for (let i = 0; i < route.length - 1; i++) {
+        waypoints.push(`${route[i].client.lt},${route[i].client.lg}`);
+      }
+      const gmapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${originStr}&destination=${destStr}${waypoints.length ? '&waypoints=' + encodeURIComponent(waypoints.join('|')) : ''}&travelmode=driving`;
+
+      let html = `
+        <div style="background:#091122; border:1px solid #1e293b; border-radius:10px; padding:12px; margin-bottom:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <b style="color:#10b981; font-size:14px;">🧭 Rota Sugerida (${route.length} Paradas)</b>
+            <span style="font-size:12px; font-weight:bold; color:var(--accent-blue);">📏 Total: ~${totalDist.toFixed(1)} km</span>
+          </div>
+          <div style="font-size:11px; color:var(--text-muted);">Sequência otimizada pelo menor trajeto (algoritmo TSP).</div>
+          <a href="${gmapsUrl}" target="_blank" style="display:block; text-align:center; background:linear-gradient(135deg, #10b981, #059669); color:#fff; padding:10px; border-radius:8px; font-weight:bold; text-decoration:none; margin-top:10px; box-shadow:0 4px 12px rgba(16,185,129,0.3);">🚀 Abrir Rota Completa no Google Maps</a>
+        </div>
+        <div style="font-size:11px; font-weight:bold; color:#cbd5e1; margin-bottom:8px;">📍 Sequência da Rota:</div>
+      `;
+
+      route.forEach((item, idx) => {
+        const c = item.client;
+        const legStr = item.legDist < 1 ? `${Math.round(item.legDist * 1000)} m` : `${item.legDist.toFixed(1)} km`;
+        html += `
+          <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; padding:10px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="background:#10b981; color:#fff; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:11px;">${idx + 1}</span>
+              <div>
+                <b style="color:#fff; font-size:12px;">${c.c}</b>
+                <div style="font-size:10px; color:var(--text-muted);">${c.e ? c.e + ' — ' : ''}${c.m}/${c.u}</div>
+              </div>
+            </div>
+            <div style="text-align:right;">
+              <span style="font-size:10px; font-weight:bold; color:#34d399;">+ ${legStr}</span>
+              <div style="margin-top:2px; display:flex; gap:4px;">
+                <button onclick="openDossierModal('${c.id}'); closeRouteOptModal();" style="background:#ec4899; color:#fff; border:none; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold; cursor:pointer;">Ficha</button>
+                <button onclick="openVisitModal('${c.id}'); closeRouteOptModal();" style="background:#8b5cf6; color:#fff; border:none; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold; cursor:pointer;">Visita</button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      box.innerHTML = html;
+    }
+
+    // ── DASHBOARD GERENCIAL & KPIS ──
+    function renderDashboard() {
+      const raw = STATE.rawClients || [];
+      const visits = STATE.visitLogs || [];
+      const prospects = STATE.photoPins || [];
+
+      // KPIs
+      const elBase = document.getElementById('kpi-total-base');
+      if (elBase) elBase.innerText = raw.length.toLocaleString('pt-BR');
+
+      const targetCount = raw.filter(c => c.target).length;
+      const targetPct = raw.length ? ((targetCount / raw.length) * 100).toFixed(1) : 0;
+      const elCnae = document.getElementById('kpi-target-cnae');
+      if (elCnae) elCnae.innerText = `${targetPct}%`;
+
+      const elVisits = document.getElementById('kpi-total-visits');
+      if (elVisits) elVisits.innerText = visits.length.toLocaleString('pt-BR');
+
+      const elPros = document.getElementById('kpi-prospects-count');
+      if (elPros) elPros.innerText = prospects.length.toLocaleString('pt-BR');
+
+      generateSmartAlerts();
+      renderRegionalCoverage();
+
+      // Chart 1: Filiais (Pie)
+      const filialCounts = {};
+      raw.forEach(c => { if(c.f) filialCounts[c.f] = (filialCounts[c.f] || 0) + 1; });
+      renderChart('chart-filiais', 'pie', Object.keys(filialCounts), Object.values(filialCounts), 'Clientes por Filial', [
+        '#3b82f6', '#10b981', '#ec4899', '#8b5cf6', '#f59e0b', '#06b6d4', '#84cc16'
+      ]);
+
+      // Chart 2: Top 10 Cidades (Bar)
+      const cityCounts = {};
+      raw.forEach(c => { if(c.m) cityCounts[c.m] = (cityCounts[c.m] || 0) + 1; });
+      const sortedCities = Object.entries(cityCounts).sort((a,b) => b[1] - a[1]).slice(0, 10);
+      renderChart('chart-cities', 'bar', sortedCities.map(x => x[0]), sortedCities.map(x => x[1]), 'Clientes', '#3b82f6');
+
+      // Chart 3: Histórico Visitas (Line)
+      const visitDates = {};
+      visits.forEach(v => {
+        const d = v.date ? v.date.split(',')[0].trim() : 'Hoje';
+        visitDates[d] = (visitDates[d] || 0) + 1;
+      });
+      const sortedDates = Object.entries(visitDates).slice(0, 10);
+      renderChart('chart-visits-timeline', 'line', sortedDates.map(x => x[0]), sortedDates.map(x => x[1]), 'Visitas', '#a78bfa');
+
+      // Chart 4: Status Visitas (Bar)
+      const statusCounts = {};
+      visits.forEach(v => {
+        const s = v.status || 'Visita';
+        statusCounts[s] = (statusCounts[s] || 0) + 1;
+      });
+      renderChart('chart-users-activity', 'bar', Object.keys(statusCounts), Object.values(statusCounts), 'Registros', '#f472b6');
+    }
+
+    function renderChart(canvasId, type, labels, data, label, colors) {
+      if (typeof Chart === 'undefined') return;
+      const ctx = document.getElementById(canvasId);
+      if (!ctx) return;
+
+      if (!STATE.charts) STATE.charts = {};
+      if (STATE.charts[canvasId]) {
+        STATE.charts[canvasId].destroy();
+      }
+
+      const bgColors = Array.isArray(colors) ? colors : colors;
+
+      STATE.charts[canvasId] = new Chart(ctx, {
+        type: type,
+        data: {
+          labels: labels,
+          datasets: [{
+            label: label,
+            data: data,
+            backgroundColor: bgColors,
+            borderColor: '#0f172a',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: type === 'pie', labels: { color: '#cbd5e1', font: { size: 10 } } }
+          },
+          scales: type !== 'pie' ? {
+            x: { ticks: { color: '#94a3b8', font: { size: 9 } }, grid: { color: '#1e293b' } },
+            y: { ticks: { color: '#94a3b8', font: { size: 9 } }, grid: { color: '#1e293b' } }
+          } : {}
+        }
+      });
+    }
+
+    function generateSmartAlerts() {
+      const box = document.getElementById('smart-alerts-container');
+      if (!box) return;
+
+      let html = '';
+
+      // Alert 1: Prospects do Google próximos não salvos
+      if (STATE.userPos && STATE.googleProspects && STATE.googleProspects.length > 0) {
+        const nearbyUnsaved = STATE.googleProspects.filter(gp => haversineDistance(STATE.userPos.lat, STATE.userPos.lng, gp.lat, gp.lng) <= 1.5);
+        if (nearbyUnsaved.length > 0) {
+          html += `
+            <div style="background:rgba(236,72,153,0.1); border:1px solid var(--accent-pink); border-radius:10px; padding:10px 14px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:18px;">🔥</span>
+                <div>
+                  <b style="color:#f472b6; font-size:12px;">${nearbyUnsaved.length} Prospects Oportunidade no Raio de 1.5 km</b>
+                  <div style="font-size:10px; color:#cbd5e1;">Locais comerciais do Google Maps prontos para abordagem rápida.</div>
+                </div>
+              </div>
+              <button onclick="switchTab('view-google')" style="background:var(--accent-pink); color:#fff; border:none; padding:5px 10px; border-radius:6px; font-size:10px; font-weight:bold; cursor:pointer;">Ver Prospects</button>
+            </div>
+          `;
+        }
+      }
+
+      // Alert 2: Clientes ALVO a menos de 300m
+      if (STATE.userPos && STATE.activeClients) {
+        const veryClose = STATE.activeClients.filter(c => c.distKm <= 0.3 && c.target);
+        if (veryClose.length > 0) {
+          html += `
+            <div style="background:rgba(16,185,129,0.1); border:1px solid #10b981; border-radius:10px; padding:10px 14px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:18px;">📍</span>
+                <div>
+                  <b style="color:#34d399; font-size:12px;">${veryClose.length} Cliente(s) ALVO a menos de 300 metros de você!</b>
+                  <div style="font-size:10px; color:#cbd5e1;">Aproveite a proximidade física para fazer uma visita presencial agora.</div>
+                </div>
+              </div>
+              <button onclick="switchTab('view-list')" style="background:#10b981; color:#fff; border:none; padding:5px 10px; border-radius:6px; font-size:10px; font-weight:bold; cursor:pointer;">Ver Lista</button>
+            </div>
+          `;
+        }
+      }
+
+      // Alert 3: Sem compras registradas há +90 dias
+      const noBuy90 = (STATE.activeClients || []).filter(c => c.du && c.target && (c.du.includes('2024') || c.du.includes('2023')));
+      if (noBuy90.length > 0) {
+        html += `
+          <div style="background:rgba(245,158,11,0.1); border:1px solid #f59e0b; border-radius:10px; padding:10px 14px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:18px;">⚠️</span>
+              <div>
+                <b style="color:#fbbf24; font-size:12px;">${noBuy90.length} Clientes Ativos Sem Compra Recente</b>
+                <div style="font-size:10px; color:#cbd5e1;">Risco de inativação de conta. Priorize o contato de reconquista.</div>
+              </div>
+            </div>
+            <button onclick="openRouteOptModal()" style="background:#f59e0b; color:#fff; border:none; padding:5px 10px; border-radius:6px; font-size:10px; font-weight:bold; cursor:pointer;">Roteirizar</button>
+          </div>
+        `;
+      }
+
+      box.innerHTML = html;
+    }
+
+    function renderRegionalCoverage() {
+      const box = document.getElementById('regional-coverage-list');
+      if (!box) return;
+
+      const activeList = STATE.activeClients || [];
+      if (activeList.length === 0) {
+        box.innerHTML = `<div style="font-size:11px; color:var(--text-muted);">Nenhum cliente no filtro atual para calcular cobertura.</div>`;
+        return;
+      }
+
+      const cityMap = {};
+      activeList.forEach(c => {
+        const city = c.m || 'Outras';
+        if (!cityMap[city]) cityMap[city] = { total: 0, visited: 0 };
+        cityMap[city].total++;
+        if (STATE.visitLogs.some(v => v.clientId == c.id)) {
+          cityMap[city].visited++;
+        }
+      });
+
+      const sorted = Object.entries(cityMap).sort((a,b) => b[1].total - a[1].total).slice(0, 8);
+
+      let html = '';
+      sorted.forEach(([city, data]) => {
+        const pct = ((data.visited / data.total) * 100).toFixed(0);
+        const barColor = pct > 50 ? '#10b981' : pct > 20 ? '#f59e0b' : '#ef4444';
+        html += `
+          <div style="margin-bottom:8px;">
+            <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:3px;">
+              <span style="color:#fff; font-weight:bold;">🏙️ ${city}</span>
+              <span style="color:${barColor}; font-weight:bold;">${data.visited} / ${data.total} clientes (${pct}%)</span>
+            </div>
+            <div style="background:#090d16; border-radius:6px; height:8px; overflow:hidden; border:1px solid #1e293b;">
+              <div style="background:${barColor}; width:${pct}%; height:100%; border-radius:6px;"></div>
+            </div>
+          </div>
+        `;
+      });
+
+      box.innerHTML = html;
     }
 
     function openUserModal() {
@@ -1364,6 +1873,7 @@
       renderMapMarkers();
       renderListView();
       updateRadarHUD();
+      if (STATE.showHeatmap) renderHeatmap();
     }
 
     function switchTab(tabId) {
@@ -1374,6 +1884,7 @@
       const panel = document.getElementById(tabId);
       if (panel) panel.classList.add('active');
       if (tabId === 'view-map' && STATE.map) setTimeout(() => STATE.map.invalidateSize(), 200);
+      if (tabId === 'view-dashboard') renderDashboard();
     }
 
     function toggleGoogleOnMap() {
@@ -2053,7 +2564,7 @@
       };
 
       STATE.photoPins.unshift(pin);
-      localStorage.setItem('MAPA_PHOTO_PINS', JSON.stringify(STATE.photoPins));
+      syncPhotoPins();
 
       alert('Pino com foto salvo com sucesso no GPS!');
       closePhotoPinModal();
@@ -2110,7 +2621,7 @@
       };
 
       STATE.visitLogs.unshift(log);
-      localStorage.setItem('MAPA_VISITAS', JSON.stringify(STATE.visitLogs));
+      syncVisitLogs();
 
       alert('Visita salva!');
       closeVisitModal();
@@ -2164,6 +2675,7 @@
       if (document.getElementById('chk-mod-map').checked) mods.push('map');
       if (document.getElementById('chk-mod-list').checked) mods.push('list');
       if (document.getElementById('chk-mod-radar').checked) mods.push('radar');
+      if (document.getElementById('chk-mod-dashboard') && document.getElementById('chk-mod-dashboard').checked) mods.push('dashboard');
       if (document.getElementById('chk-mod-photos').checked) mods.push('photos');
       if (document.getElementById('chk-mod-visitas').checked) mods.push('visitas');
       if (document.getElementById('chk-mod-google').checked) mods.push('google');
@@ -2217,8 +2729,10 @@
         document.querySelectorAll('.view-panel').forEach(x => x.classList.remove('active'));
         item.classList.add('active');
         const targetId = item.dataset.tab;
-        document.getElementById(targetId).classList.add('active');
+        const panel = document.getElementById(targetId);
+        if (panel) panel.classList.add('active');
         if (targetId === 'view-map' && STATE.map) setTimeout(() => STATE.map.invalidateSize(), 200);
+        if (targetId === 'view-dashboard') renderDashboard();
         if (targetId === 'view-google' && !document.getElementById('google-results-box').children.length) {
           autoScanGoogleProspects();
         }
