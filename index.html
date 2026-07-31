@@ -2400,7 +2400,20 @@
             const existingClient = STATE.rawClients.find(c => {
               if (!c.c) return false;
               const cName = c.c.toLowerCase().trim();
-              return cName.includes(nameClean) || nameClean.includes(cName);
+              if (cName.length < 3) return false;
+              const nameMatch = cName.includes(nameClean) || nameClean.includes(cName);
+              if (!nameMatch) return false;
+
+              // 1. Se o cliente possui GPS, valida proximidade geográfica (máximo 5 km)
+              if (c.lt !== null && c.lg !== null) {
+                const distKm = haversineDistance(lat, lon, c.lt, c.lg);
+                return distKm <= 5.0;
+              }
+
+              // 2. Se não possui GPS, valida se a cidade/município bate com o endereço retornado pelo Google
+              if (c.m && addr.toLowerCase().includes(c.m.toLowerCase())) return true;
+
+              return false;
             });
 
             const isCadastrado = !!existingClient;
