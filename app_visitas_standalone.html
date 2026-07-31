@@ -444,7 +444,7 @@
 <body>
 
   <!-- TELA DE LOGIN -->
-  <div id="login-screen">
+  <div id="login-screen" style="display:flex !important; z-index:999999 !important;">
     <div class="login-card">
       <div class="login-logo">🗺️</div>
       <div class="login-title">Mapa Interativo Pro</div>
@@ -472,7 +472,7 @@
   </div>
 
   <!-- HEADER DA APLICAÇÃO -->
-  <header id="app-header">
+  <header id="app-header" style="display:none;">
     <div class="header-top">
       <div class="brand">
         <div class="brand-icon">🗺️</div>
@@ -499,7 +499,7 @@
   </header>
 
   <!-- QUICK TOOLBAR -->
-  <div id="quick-toolbar">
+  <div id="quick-toolbar" style="display:none;">
     <button id="btn-gps-my" class="btn-tb active" onclick="triggerGPS()">📍 Minha Posição</button>
     <button id="btn-gps-city" class="btn-tb" onclick="simularPosicaoCidade()">🏙️ Cidade</button>
     
@@ -546,7 +546,7 @@
   </div>
 
   <!-- MAIN CONTENT VIEWS -->
-  <main id="main-content">
+  <main id="main-content" style="display:none;">
     
     <!-- VIEW 1: MAPA -->
     <section id="view-map" class="view-panel active">
@@ -1004,7 +1004,7 @@
   </div>
 
   <!-- BOTTOM NAVIGATION -->
-  <nav id="bottom-nav">
+  <nav id="bottom-nav" style="display:none;">
     <div class="nav-item active" data-tab="view-map" id="nav-mod-map">
       <span class="icon">🗺️</span><span>Mapa</span>
     </div>
@@ -1193,11 +1193,16 @@
         }
       } catch (e) {}
 
-      // EXIGE OBRIGATORIAMENTE LOGIN E SENHA EM QUALQUER ABERTURA DO LINK OU APPLICATIVO
+      // EXIGE OBRIGATORIAMENTE LOGIN E SENHA EM QUALQUER ABERTURA DO LINK OU APLICATIVO
       STATE.currentUser = null;
+      document.getElementById('app-header').style.display = 'none';
+      document.getElementById('quick-toolbar').style.display = 'none';
+      document.getElementById('main-content').style.display = 'none';
+      document.getElementById('bottom-nav').style.display = 'none';
+      document.getElementById('loading-overlay').style.display = 'none';
+
       document.getElementById('login-username').value = '';
       document.getElementById('login-password').value = '';
-      document.getElementById('loading-overlay').style.display = 'none';
       document.getElementById('login-screen').style.display = 'flex';
     }
 
@@ -1214,7 +1219,14 @@
       if (found) {
         STATE.currentUser = found;
         sessionStorage.setItem('MAPA_LOGGED_USER', JSON.stringify(found));
+
+        // Esconde login e exibe a interface principal
         document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app-header').style.display = 'block';
+        document.getElementById('quick-toolbar').style.display = 'flex';
+        document.getElementById('main-content').style.display = 'flex';
+        document.getElementById('bottom-nav').style.display = 'flex';
+
         document.getElementById('loading-overlay').style.display = 'flex';
         startLoadingData();
       } else {
@@ -1231,14 +1243,18 @@
       if (confirm('Deseja realmente sair e deslogar do sistema?')) {
         sessionStorage.removeItem('MAPA_LOGGED_USER');
         try { localStorage.removeItem('MAPA_LOGGED_USER'); } catch(e) {}
+        
+        STATE.currentUser = null;
+        document.getElementById('app-header').style.display = 'none';
+        document.getElementById('quick-toolbar').style.display = 'none';
+        document.getElementById('main-content').style.display = 'none';
+        document.getElementById('bottom-nav').style.display = 'none';
+        document.getElementById('login-screen').style.display = 'flex';
+
         if ('caches' in window) {
-          caches.keys().then(names => {
-            return Promise.all(names.map(name => caches.delete(name)));
-          }).then(() => {
-            window.location.href = window.location.pathname + '?nocache=' + Date.now();
-          }).catch(() => {
-            window.location.href = window.location.pathname + '?nocache=' + Date.now();
-          });
+          caches.keys().then(names => Promise.all(names.map(name => caches.delete(name))))
+            .then(() => { window.location.href = window.location.pathname + '?nocache=' + Date.now(); })
+            .catch(() => { window.location.href = window.location.pathname + '?nocache=' + Date.now(); });
         } else {
           window.location.href = window.location.pathname + '?nocache=' + Date.now();
         }
