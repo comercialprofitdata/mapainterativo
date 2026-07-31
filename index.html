@@ -859,6 +859,29 @@
     </div>
   </div>
 
+  <!-- MODAL INTERATIVO ALVO DETECTADO NO RADAR (CLICK NO BLIP DO RADAR) -->
+  <div id="modal-radar-target" class="modal-sheet">
+    <div class="sheet-content" style="border: 2px solid var(--accent-blue); box-shadow: 0 0 30px rgba(59,130,246,0.5);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h3 style="font-size:14px; color:#60a5fa; display:flex; align-items:center; gap:6px;">
+          <span>🎯</span> <span id="radar-target-badge">ALVO DETECTADO NO RADAR</span>
+        </h3>
+        <button onclick="closeRadarTargetModal()" style="background:none; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;">✕</button>
+      </div>
+
+      <div style="background:#070d19; border:1px solid #1e293b; border-radius:10px; padding:12px; margin-bottom:12px;">
+        <div id="radar-target-name" style="font-size:15px; font-weight:800; color:#fff; margin-bottom:4px;">Nome do Estabelecimento</div>
+        <div id="radar-target-meta" style="font-size:11px; color:var(--text-muted); margin-bottom:6px;">CNPJ: -- · Filial: --</div>
+        <div id="radar-target-addr" style="font-size:11px; color:#cbd5e1; margin-bottom:8px;">📍 Endereço...</div>
+        <div id="radar-target-dist" style="font-size:12px; font-weight:bold; color:var(--accent-blue);">📏 Distância: 0 m (NE)</div>
+      </div>
+
+      <div id="radar-target-actions" style="display:flex; gap:6px; flex-wrap:wrap;">
+        <!-- Botões alimentados via JS -->
+      </div>
+    </div>
+  </div>
+
   <!-- BOTTOM NAVIGATION -->
   <nav id="bottom-nav">
     <div class="nav-item active" data-tab="view-map" id="nav-mod-map">
@@ -928,7 +951,8 @@
       radarAnimId: null,
       radarSweepAngle: 0,
       googleProspects: [],
-      showGoogleOnMap: true
+      showGoogleOnMap: true,
+      renderedBlips: []
     };
 
     const CIDADES_PARANA = [
@@ -1459,6 +1483,30 @@
       const canvas = document.getElementById('radar-canvas');
       if (!canvas) return;
 
+      canvas.onclick = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const clickX = (e.clientX - rect.left) * scaleX;
+        const clickY = (e.clientY - rect.top) * scaleY;
+        
+        let found = null;
+        let minDist = 9999;
+        (STATE.renderedBlips || []).forEach(b => {
+          const dx = b.px - clickX;
+          const dy = b.py - clickY;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          if (dist <= 22 && dist < minDist) {
+            minDist = dist;
+            found = b;
+          }
+        });
+
+        if (found) {
+          openRadarTargetModal(found);
+        }
+      };
+
       function renderFrame() {
         drawRadarCanvas();
         STATE.radarSweepAngle = (STATE.radarSweepAngle + 0.03) % (Math.PI * 2);
@@ -1527,6 +1575,8 @@
       ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI * 2); ctx.fill();
       ctx.shadowBlur = 0;
 
+      STATE.renderedBlips = [];
+
       // Posição de Clientes
       const userLat = STATE.userPos ? STATE.userPos.lat : null;
       const userLng = STATE.userPos ? STATE.userPos.lng : null;
@@ -1543,6 +1593,9 @@
         const distPct = Math.min(1.0, d / radiusKm);
         const px = cx + Math.sin(angle) * (maxR * distPct);
         const py = cy - Math.cos(angle) * (maxR * distPct);
+
+        // Salva Blip para clique interativo no Canvas
+        STATE.renderedBlips.push({ px, py, data: c, type: 'BASE' });
 
         // Desenha Blip no Radar
         ctx.fillStyle = c.target ? '#10b981' : '#60a5fa';
@@ -1562,6 +1615,9 @@
           const px = cx + Math.sin(angle) * (maxR * distPct);
           const py = cy - Math.cos(angle) * (maxR * distPct);
 
+          // Salva Blip do Google para clique
+          STATE.renderedBlips.push({ px, py, data: gp, type: 'GOOGLE' });
+
           ctx.fillStyle = '#ec4899';
           ctx.shadowColor = '#ec4899';
           ctx.shadowBlur = 12;
@@ -1569,6 +1625,58 @@
           ctx.shadowBlur = 0;
         });
       }
+    }
+
+    function openRadarTargetModal(blip) {
+      const modal = document.getElementById('modal-radar-target');
+      const badge = document.getElementById('radar-target-badge');
+      const nameEl = document.getElementById('radar-target-name');
+      const metaEl = document.getElementById('radar-target-meta');
+      const addrEl = document.getElementById('radar-target-addr');
+      const distEl = document.getElementById('radar-target-dist');
+      const actionsEl = document.getElementById('radar-target-actions');
+
+      if (blip.type === 'BASE') {
+        const c = blip.data;
+        badge.innerText = '🎯 CLIENTE DA BASE DETECTADO';
+        badge.style.color = '#34d399';
+        nameEl.innerText = c.c;
+        metaEl.innerText = `CNPJ: ${c.j || 'N/A'} · Filial: ${c.f}`;
+        addrEl.innerText = `📍 ${c.e ? c.e + ' — ' : ''}${c.m}/${c.u}`;
+        distEl.innerText = `📏 Distância: ${formatDistance(c.distKm)} (${c.bearing.dir})`;
+        
+        const cleanTel = c.t ? c.t.replace(/\D/g, '') : '';
+        const wazeUrl = (c.lt && c.lg) ? `https://waze.com/ul?ll=${c.lt},${c.lg}&navigate=yes` : '#';
+        const gmapsUrl = (c.lt && c.lg) ? `https://www.google.com/maps/search/?api=1&query=${c.lt},${c.lg}` : '#';
+
+        actionsEl.innerHTML = `
+          <button onclick="openDossierModal('${c.id}'); closeRadarTargetModal();" class="act-btn dossier" style="padding:6px 10px; font-size:10px;">📄 Ficha</button>
+          <button onclick="openVisitModal('${c.id}'); closeRadarTargetModal();" class="act-btn visit" style="padding:6px 10px; font-size:10px;">📝 Visita</button>
+          ${cleanTel ? `<a href="https://wa.me/55${cleanTel}" target="_blank" class="act-btn wa" style="padding:6px 10px; font-size:10px;">💬 Whats</a>` : ''}
+          <a href="${wazeUrl}" target="_blank" class="act-btn waze" style="padding:6px 10px; font-size:10px;">🧭 Waze</a>
+          <a href="${gmapsUrl}" target="_blank" class="act-btn maps" style="padding:6px 10px; font-size:10px;">🗺️ Maps</a>
+        `;
+      } else {
+        const gp = blip.data;
+        badge.innerText = '🔥 PROSPECT GOOGLE DETECTADO';
+        badge.style.color = '#ec4899';
+        nameEl.innerText = `🌐 ${gp.name}`;
+        metaEl.innerText = `Oportunidade no Mercado Aberto`;
+        addrEl.innerText = `📍 ${gp.addr}`;
+        distEl.innerText = `GPS: ${gp.lat.toFixed(5)}, ${gp.lng.toFixed(5)}`;
+
+        actionsEl.innerHTML = `
+          <a href="https://www.google.com/maps/search/?api=1&query=${gp.lat},${gp.lng}" target="_blank" class="act-btn maps" style="padding:6px 10px; font-size:10px;">🗺️ Maps</a>
+          <a href="https://waze.com/ul?ll=${gp.lat},${gp.lng}&navigate=yes" target="_blank" class="act-btn waze" style="padding:6px 10px; font-size:10px;">🧭 Waze</a>
+          <button onclick="addGoogleAsProspect('${gp.name.replace(/'/g, "")}', '${gp.addr.replace(/'/g, "")}', ${gp.lat}, ${gp.lng}); closeRadarTargetModal();" class="act-btn" style="background:var(--accent-pink); color:#fff; padding:6px 10px; font-size:10px;">+ Salvar Prospect</button>
+        `;
+      }
+
+      modal.classList.add('active');
+    }
+
+    function closeRadarTargetModal() {
+      document.getElementById('modal-radar-target').classList.remove('active');
     }
 
     function updateRadarHUD() {
@@ -1587,7 +1695,7 @@
       if (userLat === null) {
         statusLbl.innerText = '⚠️ Ative o GPS ou Selecione uma Cidade para ativar o Radar';
       } else {
-        statusLbl.innerText = `🎯 Radar: ${list.length} Clientes Base + 🔥 ${googleCount} Prospects Google no Raio`;
+        statusLbl.innerText = `🎯 Radar: ${list.length} Clientes Base + 🔥 ${googleCount} Prospects Google (Toque nos blips do radar!)`;
       }
 
       // Renderiza lista compacta do Radar
@@ -1597,9 +1705,10 @@
         return;
       }
 
-      let html = '<div style="font-size:11px; font-weight:bold; color:#cbd5e1; margin-bottom:6px;">📍 Clientes no Raio do Radar:</div>';
+      let html = '<div style="font-size:11px; font-weight:bold; color:#cbd5e1; margin-bottom:6px;">📍 Clientes no Raio do Radar (Toque em um cliente para abrir ações):</div>';
       list.slice(0, 15).forEach(c => {
         const cleanTel = c.t ? c.t.replace(/\D/g, '') : '';
+        const wazeUrl = (c.lt && c.lg) ? `https://waze.com/ul?ll=${c.lt},${c.lg}&navigate=yes` : '#';
         html += `
           <div style="background:rgba(18,25,41,0.9); border:1px solid #1e293b; border-radius:8px; padding:8px 10px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
             <div>
@@ -1609,8 +1718,10 @@
             <div style="text-align:right;">
               <span style="font-size:11px; font-weight:bold; color:var(--accent-blue);">📍 ${formatDistance(c.distKm)} (${c.bearing.dir})</span>
               <div style="margin-top:2px; display:flex; gap:4px; justify-content:flex-end;">
-                <button onclick="openDossierModal('${c.id}')" style="background:#334155; color:#fff; border:none; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold; cursor:pointer;">Ficha</button>
+                <button onclick="openDossierModal('${c.id}')" style="background:#ec4899; color:#fff; border:none; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold; cursor:pointer;">Ficha</button>
+                <button onclick="openVisitModal('${c.id}')" style="background:#8b5cf6; color:#fff; border:none; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold; cursor:pointer;">Visita</button>
                 ${cleanTel ? `<a href="https://wa.me/55${cleanTel}" target="_blank" style="background:#16a34a; color:#fff; border:none; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold; text-decoration:none;">Whats</a>` : ''}
+                <a href="${wazeUrl}" target="_blank" style="background:#0284c7; color:#fff; border:none; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold; text-decoration:none;">Waze</a>
               </div>
             </div>
           </div>
