@@ -1043,10 +1043,15 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js?v=3').then(reg => {
-          console.log('[PWA] ServiceWorker registrado com sucesso:', reg);
-          reg.update();
-        }).catch(err => console.warn('[PWA] SW erro:', err));
+        navigator.serviceWorker.getRegistrations().then(regs => {
+          for (let reg of regs) {
+            reg.unregister();
+          }
+          navigator.serviceWorker.register('sw.js?v=100').then(reg => {
+            console.log('[PWA] ServiceWorker v100 registrado:', reg);
+            reg.update();
+          });
+        });
       });
     }
   </script>
@@ -1151,6 +1156,12 @@
     async function initApp() {
       await IDB.init();
 
+      // Limpa qualquer sessão ou token salvo para FORÇAR PEDIDO DE SENHA EM TODO ACESSO
+      try {
+        localStorage.removeItem('MAPA_LOGGED_USER');
+        sessionStorage.removeItem('MAPA_LOGGED_USER');
+      } catch(e) {}
+
       // Carrega lista de usuários salvos
       try {
         const u = localStorage.getItem('MAPA_USERS');
@@ -1182,22 +1193,11 @@
         }
       } catch (e) {}
 
-      // Limpa qualquer login permanente antigo em localStorage
-      try { localStorage.removeItem('MAPA_LOGGED_USER'); } catch(e) {}
-
-      // Verifica se há usuário logado na aba ativa (sessionStorage)
-      const sessionUser = sessionStorage.getItem('MAPA_LOGGED_USER');
-      if (sessionUser) {
-        try {
-          STATE.currentUser = JSON.parse(sessionUser);
-          document.getElementById('login-screen').style.display = 'none';
-          document.getElementById('loading-overlay').style.display = 'flex';
-          startLoadingData();
-          return;
-        } catch(e) {}
-      }
-      
-      // Se não estiver logado na sessão ativa, EXIGE LOGIN E SENHA
+      // EXIGE OBRIGATORIAMENTE LOGIN E SENHA EM QUALQUER ABERTURA DO LINK OU APPLICATIVO
+      STATE.currentUser = null;
+      document.getElementById('login-username').value = '';
+      document.getElementById('login-password').value = '';
+      document.getElementById('loading-overlay').style.display = 'none';
       document.getElementById('login-screen').style.display = 'flex';
     }
 
