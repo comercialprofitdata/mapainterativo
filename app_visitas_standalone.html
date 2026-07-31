@@ -270,6 +270,23 @@
     .act-btn.call { background: #059669; color: #fff; }
     .act-btn.wa { background: #16a34a; color: #fff; }
     .act-btn.log { background: var(--accent-purple); color: #fff; }
+    .act-btn.visit { background: var(--accent-purple); color: #fff; }
+
+    /* Form controls (Modais) */
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 11px; font-weight: 600; color: #cbd5e1; margin-bottom: 4px; }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%; background: #080d1a; border: 1px solid var(--border-color);
+      border-radius: 8px; padding: 10px 12px; color: #fff; font-size: 13px; outline: none;
+      font-family: inherit;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent-blue); }
+    .btn-submit {
+      width: 100%; color: #fff; border: none; padding: 12px; border-radius: 8px;
+      font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .btn-submit:active { transform: scale(0.98); }
 
     /* ── RADAR FUTURISTA HUD ── */
     #radar-view-container {
@@ -417,6 +434,10 @@
         max-height: 85vh;
         margin: auto;
       }
+
+      /* Radar Canvas maior no Desktop */
+      .radar-canvas-wrap { width: 480px; height: 480px; }
+      #radar-canvas { width: 480px; height: 480px; }
     }
   </style>
 </head>
@@ -653,7 +674,7 @@
             </div>
             <div class="form-group">
               <label>Senha de Acesso *</label>
-              <input type="text" id="uadmin-password" required placeholder="Ex: abc123"/>
+              <input type="password" id="uadmin-password" required placeholder="Ex: abc123"/>
             </div>
             <div class="form-group">
               <label>Escopo Geográfico de Clientes *</label>
@@ -1345,16 +1366,18 @@
       updateRadarHUD();
     }
 
+    function switchTab(tabId) {
+      document.querySelectorAll('#bottom-nav .nav-item').forEach(x => x.classList.remove('active'));
+      document.querySelectorAll('.view-panel').forEach(x => x.classList.remove('active'));
+      const navItem = document.querySelector(`#bottom-nav .nav-item[data-tab="${tabId}"]`);
+      if (navItem) navItem.classList.add('active');
+      const panel = document.getElementById(tabId);
+      if (panel) panel.classList.add('active');
+      if (tabId === 'view-map' && STATE.map) setTimeout(() => STATE.map.invalidateSize(), 200);
+    }
+
     function toggleGoogleOnMap() {
       STATE.showGoogleOnMap = !STATE.showGoogleOnMap;
-      const btn = document.getElementById('btn-toggle-google-map');
-      if (STATE.showGoogleOnMap) {
-        btn.classList.add('active');
-        btn.innerText = '🌐 Prospects Google (ON)';
-      } else {
-        btn.classList.remove('active');
-        btn.innerText = '🌐 Prospects Google (OFF)';
-      }
       renderMapMarkers();
       drawRadarCanvas();
     }
@@ -1408,9 +1431,10 @@
               <b style="font-size:13px; color:#ec4899;">🌐 ${gp.name}</b><br/>
               <span style="background:rgba(236,72,153,0.15); color:#ec4899; padding:2px 6px; border-radius:4px; font-weight:bold; font-size:10px;">🔥 NOVO PROSPECT GOOGLE (Oportunidade)</span><br/>
               <div style="margin-top:4px;">📍 ${gp.addr}</div>
-              <div style="margin-top:8px; display:flex; gap:4px;">
-                <a href="https://www.google.com/maps/search/?api=1&query=${gp.lat},${gp.lng}" target="_blank" style="background:#2563eb; color:#fff; padding:4px 8px; border-radius:4px; text-decoration:none; font-size:10px; font-weight:bold;">🗺️ Abrir Maps</a>
-                <button onclick="addGoogleAsProspect('${gp.name.replace(/'/g, "")}', '${gp.addr.replace(/'/g, "")}', ${gp.lat}, ${gp.lng})" style="background:#ec4899; color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">+ Salvar Prospect</button>
+              <div style="margin-top:8px; display:flex; gap:4px; flex-wrap:wrap;">
+                <a href="https://www.google.com/maps/search/?api=1&query=${gp.lat},${gp.lng}" target="_blank" style="background:#2563eb; color:#fff; padding:4px 8px; border-radius:4px; text-decoration:none; font-size:10px; font-weight:bold;">🗺️ Maps</a>
+                <a href="https://waze.com/ul?ll=${gp.lat},${gp.lng}&navigate=yes" target="_blank" style="background:#0284c7; color:#fff; padding:4px 8px; border-radius:4px; text-decoration:none; font-size:10px; font-weight:bold;">🧭 Waze</a>
+                <button onclick="addGoogleAsProspect('${gp.name.replace(/'/g, "")}', '${gp.addr.replace(/'/g, "")}', ${gp.lat}, ${gp.lng})" style="background:#ec4899; color:#fff; border:none; padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold; cursor:pointer;">+ Salvar</button>
               </div>
             </div>
           `);
@@ -1700,13 +1724,15 @@
 
       // Renderiza lista compacta do Radar
       const box = document.getElementById('radar-closest-list');
-      if (list.length === 0) {
-        box.innerHTML = `<div style="text-align:center; color:var(--text-muted); font-size:12px;">Nenhum cliente detectado no raio do radar.</div>`;
+      if (list.length === 0 && googleCount === 0) {
+        box.innerHTML = `<div style="text-align:center; color:var(--text-muted); font-size:12px;">Nenhum cliente ou prospect detectado no raio do radar.</div>`;
         return;
       }
 
-      let html = '<div style="font-size:11px; font-weight:bold; color:#cbd5e1; margin-bottom:6px;">📍 Clientes no Raio do Radar (Toque em um cliente para abrir ações):</div>';
-      list.slice(0, 15).forEach(c => {
+      let html = '<div style="font-size:11px; font-weight:bold; color:#cbd5e1; margin-bottom:6px;">📍 Alvos no Raio do Radar (Toque para abrir ações):</div>';
+
+      // Clientes Base
+      list.slice(0, 12).forEach(c => {
         const cleanTel = c.t ? c.t.replace(/\D/g, '') : '';
         const wazeUrl = (c.lt && c.lg) ? `https://waze.com/ul?ll=${c.lt},${c.lg}&navigate=yes` : '#';
         html += `
@@ -1727,15 +1753,55 @@
           </div>
         `;
       });
+
+      // Prospects Google no Radar
+      if (STATE.showGoogleOnMap && STATE.googleProspects && STATE.googleProspects.length > 0) {
+        const userLt = STATE.userPos ? STATE.userPos.lat : null;
+        const userLg = STATE.userPos ? STATE.userPos.lng : null;
+        html += '<div style="font-size:11px; font-weight:bold; color:#ec4899; margin-top:8px; margin-bottom:6px;">🔥 Prospects Google no Raio:</div>';
+        STATE.googleProspects.slice(0, 8).forEach(gp => {
+          const gpDist = (userLt !== null) ? haversineDistance(userLt, userLg, gp.lat, gp.lng) : null;
+          const gpDistStr = gpDist !== null ? formatDistance(gpDist) : '';
+          html += `
+            <div style="background:rgba(236,72,153,0.08); border:1px solid rgba(236,72,153,0.3); border-radius:8px; padding:8px 10px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <b style="color:#f472b6; font-size:12px;">🌐 ${gp.name}</b>
+                <div style="font-size:10px; color:var(--text-muted);">${gp.addr.length > 40 ? gp.addr.slice(0,40) + '...' : gp.addr}</div>
+              </div>
+              <div style="text-align:right;">
+                ${gpDistStr ? `<span style="font-size:11px; font-weight:bold; color:#ec4899;">📏 ${gpDistStr}</span>` : ''}
+                <div style="margin-top:2px; display:flex; gap:4px; justify-content:flex-end;">
+                  <a href="https://www.google.com/maps/search/?api=1&query=${gp.lat},${gp.lng}" target="_blank" style="background:#2563eb; color:#fff; border:none; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold; text-decoration:none;">Maps</a>
+                  <a href="https://waze.com/ul?ll=${gp.lat},${gp.lng}&navigate=yes" target="_blank" style="background:#0284c7; color:#fff; border:none; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold; text-decoration:none;">Waze</a>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+      }
+
       box.innerHTML = html;
     }
 
     // ── BUSCA GOOGLE AUTOMÁTICA & PROSPECÇÃO (OPENSTREETMAP / GOOGLE MAPS API) ──
     async function autoScanGoogleProspects(keyword = 'supermercado') {
-      let city = 'Campo Grande, MS';
-      if (STATE.userPos && STATE.activeClients && STATE.activeClients[0]) {
+      let city = '';
+      // 1. Tenta pegar cidade do primeiro cliente no raio
+      if (STATE.activeClients && STATE.activeClients[0] && STATE.activeClients[0].m) {
         city = `${STATE.activeClients[0].m}, ${STATE.activeClients[0].u}`;
       }
+      // 2. Fallback: usa o que o usuário digitou no campo de cidade
+      if (!city) {
+        const cityInput = document.getElementById('inp-custom-city');
+        if (cityInput && cityInput.value.trim()) city = cityInput.value.trim();
+      }
+      // 3. Fallback: coordenadas GPS
+      if (!city && STATE.userPos) {
+        city = `${STATE.userPos.lat.toFixed(4)}, ${STATE.userPos.lng.toFixed(4)}`;
+      }
+      // 4. Default final
+      if (!city) city = 'Campo Grande, MS';
+
       const query = `${keyword}, ${city}`;
       document.getElementById('inp-google-query').value = query;
       await performGoogleSearch(query, keyword);
@@ -1831,18 +1897,24 @@
               ? `<span style="background:rgba(16,185,129,0.2); color:#34d399; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:bold;">✅ JÁ É CLIENTE DA BASE (${existingClient.f})</span>`
               : `<span style="background:rgba(236,72,153,0.2); color:#f472b6; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:bold;">🔥 NOVO PROSPECT GOOGLE</span>`;
 
+            const gpDist = (STATE.userPos) ? haversineDistance(STATE.userPos.lat, STATE.userPos.lng, lat, lon) : null;
+            const gpDistStr = gpDist !== null ? formatDistance(gpDist) : '';
+
             html += `
-              <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:12px; margin-bottom:8px;">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">
-                  <b style="color:#fff; font-size:13px;">🌐 ${name}</b>
-                  ${statusBadge}
+              <div style="background:var(--bg-card); border:1px solid ${isCadastrado ? 'rgba(16,185,129,0.4)' : 'rgba(236,72,153,0.3)'}; border-radius:10px; padding:12px; margin-bottom:8px;">
+                <div style="margin-bottom:6px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:4px;">
+                    <b style="color:#fff; font-size:13px;">🌐 ${name}</b>
+                    ${statusBadge}
+                  </div>
+                  ${gpDistStr ? `<div style="font-size:11px; font-weight:bold; color:var(--accent-blue); margin-top:4px;">📏 ${gpDistStr} de você</div>` : ''}
                 </div>
-                <div style="font-size:11px; color:#cbd5e1; margin-top:2px;">📍 ${addr}</div>
-                <div style="font-size:10px; color:var(--accent-blue); margin-top:2px;">GPS: ${lat.toFixed(5)}, ${lon.toFixed(5)}</div>
-                <div style="display:flex; gap:6px; margin-top:8px;">
-                  <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lon}" target="_blank" class="act-btn maps">🗺️ Abrir no Google Maps</a>
-                  ${isCadastrado ? `<button onclick="openDossierModal('${existingClient.id}')" class="act-btn dossier">📄 Ver Ficha</button>` : ''}
-                  <button onclick="addGoogleAsProspect('${name.replace(/'/g, "")}', '${addr.replace(/'/g, "")}', ${lat}, ${lon})" class="act-btn" style="background:var(--accent-pink); color:#fff;">+ Salvar como Prospect</button>
+                <div style="font-size:11px; color:#cbd5e1; margin-top:2px; word-break:break-word;">📍 ${addr.length > 80 ? addr.slice(0,80) + '...' : addr}</div>
+                <div style="display:flex; gap:5px; margin-top:8px; flex-wrap:wrap;">
+                  <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lon}" target="_blank" class="act-btn maps">🗺️ Maps</a>
+                  <a href="https://waze.com/ul?ll=${lat},${lon}&navigate=yes" target="_blank" class="act-btn waze">🧭 Waze</a>
+                  ${isCadastrado ? `<button onclick="openDossierModal('${existingClient.id}')" class="act-btn dossier">📄 Ficha</button>` : ''}
+                  ${!isCadastrado ? `<button onclick="addGoogleAsProspect('${name.replace(/'/g, "")}', '${addr.replace(/'/g, "")}', ${lat}, ${lon})" class="act-btn" style="background:var(--accent-pink); color:#fff;">+ Salvar Prospect</button>` : ''}
                 </div>
               </div>
             `;
@@ -1860,7 +1932,7 @@
     function addGoogleAsProspect(title, address, lat, lng) {
       const pin = {
         id: 'PROSPECT_' + Date.now(),
-        img: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=200&q=80',
+        img: '',
         cat: '🔥 Prospect Novo',
         title: title,
         comments: `Prospect importado do Google Maps: ${address}`,
@@ -1999,7 +2071,7 @@
       STATE.photoPins.forEach(p => {
         html += `
           <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:10px; margin-bottom:10px; display:flex; gap:10px;">
-            <img src="${p.img}" style="width:80px; height:80px; object-fit:cover; border-radius:8px;"/>
+            ${p.img ? `<img src="${p.img}" style="width:80px; height:80px; object-fit:cover; border-radius:8px;"/>` : `<div style="width:80px; height:80px; background:linear-gradient(135deg,#ec4899,#8b5cf6); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:28px;">🌐</div>`}
             <div style="flex:1;">
               <b style="color:#fff; font-size:13px;">${p.title}</b>
               <div style="font-size:10px; color:var(--accent-pink); font-weight:bold;">${p.cat} · ${p.date}</div>
