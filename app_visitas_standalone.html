@@ -1182,8 +1182,11 @@
         }
       } catch (e) {}
 
-      // Verifica se há usuário logado na sessão
-      const sessionUser = localStorage.getItem('MAPA_LOGGED_USER');
+      // Limpa qualquer login permanente antigo em localStorage
+      try { localStorage.removeItem('MAPA_LOGGED_USER'); } catch(e) {}
+
+      // Verifica se há usuário logado na aba ativa (sessionStorage)
+      const sessionUser = sessionStorage.getItem('MAPA_LOGGED_USER');
       if (sessionUser) {
         try {
           STATE.currentUser = JSON.parse(sessionUser);
@@ -1194,7 +1197,7 @@
         } catch(e) {}
       }
       
-      // Se não estiver logado, exige login
+      // Se não estiver logado na sessão ativa, EXIGE LOGIN E SENHA
       document.getElementById('login-screen').style.display = 'flex';
     }
 
@@ -1210,7 +1213,7 @@
 
       if (found) {
         STATE.currentUser = found;
-        localStorage.setItem('MAPA_LOGGED_USER', JSON.stringify(found));
+        sessionStorage.setItem('MAPA_LOGGED_USER', JSON.stringify(found));
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('loading-overlay').style.display = 'flex';
         startLoadingData();
@@ -1226,7 +1229,8 @@
 
     function logoutUser() {
       if (confirm('Deseja realmente sair e deslogar do sistema?')) {
-        localStorage.removeItem('MAPA_LOGGED_USER');
+        sessionStorage.removeItem('MAPA_LOGGED_USER');
+        try { localStorage.removeItem('MAPA_LOGGED_USER'); } catch(e) {}
         if ('caches' in window) {
           caches.keys().then(names => {
             return Promise.all(names.map(name => caches.delete(name)));
@@ -1669,7 +1673,7 @@
           const idx = parseInt(choice) - 1;
           if (STATE.users[idx]) {
             STATE.currentUser = STATE.users[idx];
-            localStorage.setItem('MAPA_LOGGED_USER', JSON.stringify(STATE.currentUser));
+            sessionStorage.setItem('MAPA_LOGGED_USER', JSON.stringify(STATE.currentUser));
             applyUserPermissions();
             applyFilters();
             alert(`Perfil alternado para: ${STATE.currentUser.name}`);
