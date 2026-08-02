@@ -1368,35 +1368,38 @@
       </div>
     </section>
 
-    <!-- VIEW 7: PROSPECÇÃO GOOGLE -->
+    <!-- VIEW 7: PROSPECÇÃO DE PROSPECTS COMERCIAIS REAL-TIME -->
     <section id="view-google" class="view-panel">
-      <div style="padding:12px; height:100%; overflow-y:auto;">
+      <div style="padding:12px; height:100%; overflow-y:auto; padding-bottom:85px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
           <div>
-            <div style="font-size:14px; font-weight:800; color:#fff;">🌐 Prospecção Google Maps & OSM</div>
-            <div style="font-size:10px; color:var(--text-muted);">Busque estabelecimentos ao redor e identifique novos clientes</div>
+            <div style="font-size:14px; font-weight:800; color:#fff;">🌐 Prospecção Comercial de Campo</div>
+            <div style="font-size:10px; color:var(--accent-blue);">Varredura de comércios reais, lojas e serviços ao redor do seu GPS</div>
           </div>
-          <button class="act-btn" style="background:var(--accent-blue); color:#fff;" onclick="scanAllCategoriesNow()">⚡ Varrer Região</button>
+          <button class="act-btn" style="background:var(--accent-blue); color:#fff; font-weight:bold; font-size:11px;" onclick="performOverpassProspectSearch('ALL')">⚡ Varrer Região GPS</button>
         </div>
 
-        <div class="prospect-search-card">
-          <div style="font-size:11px; font-weight:bold; color:var(--accent-blue); margin-bottom:6px;">⚡ Varredura Automática nos Seus Segmentos Alvo</div>
-          <div style="display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; margin-bottom:8px;">
-            <button class="act-btn" style="background:#2563eb; color:#fff; white-space:nowrap;" onclick="performGoogleSearch('supermercado minimercado mercearia', 'Mercados')">🛒 Mercados</button>
-            <button class="act-btn" style="background:#059669; color:#fff; white-space:nowrap;" onclick="performGoogleSearch('padaria confeitaria panificadora', 'Padarias')">🥖 Padarias</button>
-            <button class="act-btn" style="background:#dc2626; color:#fff; white-space:nowrap;" onclick="performGoogleSearch('açougue casa de carnes', 'Açougues')">🥩 Açougues</button>
-            <button class="act-btn" style="background:#d97706; color:#fff; white-space:nowrap;" onclick="performGoogleSearch('distribuidora de bebidas deposito de bebidas', 'Bebidas')">🍺 Bebidas</button>
-            <button class="act-btn" style="background:#10b981; color:#fff; white-space:nowrap;" onclick="performGoogleSearch('hortifruti sacolao', 'Hortifruti')">🍎 Hortifruti</button>
-            <button class="act-btn" style="background:#8b5cf6; color:#fff; white-space:nowrap;" onclick="performGoogleSearch('conveniencia posto', 'Conveniência')">⛽ Conveniência</button>
+        <div class="prospect-search-card" style="background:#0b1324; border:1px solid #1e293b; border-radius:12px; padding:12px; margin-bottom:12px;">
+          <div style="font-size:11px; font-weight:bold; color:#60a5fa; margin-bottom:8px;">⚡ Selecione o Segmento de Mercado Alvo:</div>
+          
+          <div style="display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; margin-bottom:10px; -webkit-overflow-scrolling:touch;">
+            <button class="act-btn" style="background:#2563eb; color:#fff; white-space:nowrap; font-size:11px;" onclick="performOverpassProspectSearch('ALL')">🔥 Todos os Comércios</button>
+            <button class="act-btn" style="background:#059669; color:#fff; white-space:nowrap; font-size:11px;" onclick="performOverpassProspectSearch('supermarket')">🛒 Mercados & Atacados</button>
+            <button class="act-btn" style="background:#d97706; color:#fff; white-space:nowrap; font-size:11px;" onclick="performOverpassProspectSearch('bakery')">🥖 Padarias & Panificadoras</button>
+            <button class="act-btn" style="background:#ec4899; color:#fff; white-space:nowrap; font-size:11px;" onclick="performOverpassProspectSearch('pet')">🐾 Pet Shop & Veterinárias</button>
+            <button class="act-btn" style="background:#16a34a; color:#fff; white-space:nowrap; font-size:11px;" onclick="performOverpassProspectSearch('agrarian')">🚜 Agropecuárias & Campo</button>
+            <button class="act-btn" style="background:#8b5cf6; color:#fff; white-space:nowrap; font-size:11px;" onclick="performOverpassProspectSearch('car')">🔧 Autopeças & Oficinas</button>
+            <button class="act-btn" style="background:#e11d48; color:#fff; white-space:nowrap; font-size:11px;" onclick="performOverpassProspectSearch('restaurant')">🍔 Restaurantes & Lanches</button>
+            <button class="act-btn" style="background:#0284c7; color:#fff; white-space:nowrap; font-size:11px;" onclick="performOverpassProspectSearch('pharmacy')">💊 Farmácias & Drogarias</button>
           </div>
           
           <div style="display:flex; gap:6px;">
-            <input type="text" id="inp-google-query" style="flex:1; background:#080d1a; border:1px solid var(--border-color); border-radius:8px; padding:8px 10px; color:#fff; font-size:12px;" placeholder="Ex: padaria, supermercado, restaurante..."/>
-            <button class="act-btn" style="background:var(--accent-blue); color:#fff; padding:0 12px;" onclick="performGoogleSearch()">Buscar</button>
+            <input type="text" id="inp-google-query" oninput="filterProspectsLive(this.value)" style="flex:1; background:#121929; border:1px solid #334155; border-radius:8px; padding:10px 12px; color:#fff; font-size:12px;" placeholder="🔍 Filtrar por nome ou rua (ex: América, Pão, Fernando Corrêa)..."/>
+            <button class="act-btn" style="background:var(--accent-blue); color:#fff; padding:0 14px; font-weight:bold;" onclick="performOverpassProspectSearch('ALL', document.getElementById('inp-google-query').value)">Buscar</button>
           </div>
         </div>
 
-        <div id="google-prospects-list"></div>
+        <div id="google-results-box"></div>
       </div>
     </section>
 
@@ -3405,295 +3408,228 @@
       await performGoogleSearch(query, keyword);
     }
 
-    async function scanAllCategoriesNow() {
+    // ── BUSCA PROSPECT PROFISSIONAL VIA OVERPASS API & OSM HYBRID ──
+    window.STATE_OVERPASS_PROSPECTS = [];
+
+    async function performOverpassProspectSearch(categoryKey = 'ALL', filterText = '') {
       switchTab('view-google');
-      const categories = ['supermercado', 'padaria', 'pet shop', 'farmacia', 'restaurante', 'atacado', 'conveniencia'];
-      let targetCity = '';
-      if (STATE.activeClients && STATE.activeClients[0] && STATE.activeClients[0].m) {
-        targetCity = `${STATE.activeClients[0].m}, ${STATE.activeClients[0].u}`;
-      } else {
-        targetCity = 'Rondonópolis, MT';
-      }
-
-      document.getElementById('inp-google-query').value = `Varredura Completa (${targetCity})`;
-
       const box = document.getElementById('google-results-box');
       box.innerHTML = `
         <div style="background:rgba(59,130,246,0.1); border:1px solid var(--accent-blue); padding:16px; border-radius:12px; text-align:center; color:#fff;">
           <div class="spinner" style="margin: 0 auto 10px;"></div>
-          <b>⚡ Varredura Completa de Todos os Prospects (${targetCity})...</b>
-          <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">Buscando Supermercados, Padarias, Pet Shops, Farmácias e Restaurantes...</div>
+          <b>⚡ Realizando Varredura de Prospects Comerciais em Tempo Real...</b>
+          <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">Buscando comércios ativos, lojas e serviços ao redor do seu GPS...</div>
         </div>
       `;
 
-      let allProspects = [];
-      const userLat = STATE.userPos ? STATE.userPos.lat : null;
-      const userLng = STATE.userPos ? STATE.userPos.lng : null;
+      let userLat = STATE.userPos ? STATE.userPos.lat : null;
+      let userLng = STATE.userPos ? STATE.userPos.lng : null;
 
-      if (!navigator.onLine) {
-        // Se estiver OFFLINE, busca prospects salvos no cache local IndexedDB
-        const cached = await IDB.getStore('prospects');
-        if (cached && cached.length > 0) {
-          STATE.googleProspects = cached;
-          renderMapMarkers();
-          updateRadarHUD();
-          box.innerHTML = `
-            <div style="background:rgba(245,158,11,0.1); border:1px solid #f59e0b; padding:12px; border-radius:10px; color:#fbbf24; font-size:12px; margin-bottom:10px;">
-              📡 <b>Modo Offline:</b> Você está sem conexão com a internet. Exibindo <b>${cached.length} prospects</b> salvos no cache local do seu aparelho.
-            </div>
-          `;
-          return;
+      if (userLat === null) {
+        if (STATE.activeClients && STATE.activeClients[0] && STATE.activeClients[0].lt) {
+          userLat = STATE.activeClients[0].lt;
+          userLng = STATE.activeClients[0].lg;
+        } else {
+          userLat = -16.467; userLng = -54.636; // Rondonópolis Centro
         }
       }
 
-      for (const cat of categories.slice(0, 4)) {
+      const delta = 0.06; // ~6.5km de raio
+      const south = (userLat - delta).toFixed(5);
+      const west = (userLng - delta).toFixed(5);
+      const north = (userLat + delta).toFixed(5);
+      const east = (userLng + delta).toFixed(5);
+
+      let qlFilter = `
+        node["shop"](${south},${west},${north},${east});
+        node["amenity"~"restaurant|fast_food|pharmacy|veterinary|pub|cafe|bank|fuel|butcher"](${south},${west},${north},${east});
+        node["craft"](${south},${west},${north},${east});
+      `;
+
+      if (categoryKey === 'supermarket') {
+        qlFilter = `node["shop"~"supermarket|convenience|deli|grocery"](${south},${west},${north},${east});`;
+      } else if (categoryKey === 'bakery') {
+        qlFilter = `node["shop"~"bakery|pastry"](${south},${west},${north},${east});`;
+      } else if (categoryKey === 'pet') {
+        qlFilter = `node["shop"="pet"](${south},${west},${north},${east}); node["amenity"="veterinary"](${south},${west},${north},${east});`;
+      } else if (categoryKey === 'agrarian') {
+        qlFilter = `node["shop"~"agrarian|farm|hardware"](${south},${west},${north},${east});`;
+      } else if (categoryKey === 'car') {
+        qlFilter = `node["shop"~"car_parts|car_repair"](${south},${west},${north},${east}); node["craft"="car_repair"](${south},${west},${north},${east});`;
+      } else if (categoryKey === 'restaurant') {
+        qlFilter = `node["amenity"~"restaurant|fast_food|pub|cafe|bar"](${south},${west},${north},${east});`;
+      } else if (categoryKey === 'pharmacy') {
+        qlFilter = `node["amenity"="pharmacy"](${south},${west},${north},${east}); node["shop"="chemist"](${south},${west},${north},${east});`;
+      }
+
+      const queryQL = `[out:json][timeout:15];(${qlFilter});out body 120;`;
+      const overpassUrl = "https://overpass-api.de/api/interpreter?data=" + encodeURIComponent(queryQL);
+
+      let rawProspects = [];
+
+      try {
+        const resp = await fetch(overpassUrl);
+        const data = await resp.json();
+        if (data && data.elements && data.elements.length > 0) {
+          data.elements.forEach(el => {
+            const tags = el.tags || {};
+            const rawName = tags.name || tags['brand'] || tags['operator'];
+            if (!rawName) return;
+
+            const shopType = tags.shop || tags.amenity || tags.craft || 'Comércio Local';
+            const street = tags['addr:street'] ? `Rua ${tags['addr:street']} ${tags['addr:housenumber']||''}` : '';
+            const phone = tags.phone || tags['contact:phone'] || tags['whatsapp'] || '';
+
+            const distKm = haversineDistance(userLat, userLng, el.lat, el.lon);
+
+            rawProspects.push({
+              name: rawName,
+              cat: shopType,
+              addr: street || 'Região Comercial',
+              phone: phone,
+              lat: el.lat,
+              lng: el.lon,
+              distKm: distKm
+            });
+          });
+        }
+      } catch (err) {
+        console.warn('Overpass timeout/fallback to Nominatim:', err);
+      }
+
+      // Fallback ou Complemento via Nominatim
+      if (rawProspects.length < 5) {
         try {
-          let url = '';
-          if (userLat !== null && userLng !== null) {
-            url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cat)}&lat=${userLat}&lon=${userLng}&bounded=1&viewbox=${userLng-0.2},${userLat+0.2},${userLng+0.2},${userLat-0.2}&limit=15&countrycodes=br`;
-          } else {
-            url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cat + ', ' + targetCity)}&limit=15&countrycodes=br`;
-          }
-          const resp = await fetch(url);
-          const items = await resp.json();
-          if (items && Array.isArray(items)) {
-            items.forEach(item => {
-              const name = item.display_name.split(',')[0] || item.name || 'Estabelecimento Comercial';
-              if (!allProspects.some(p => p.name === name)) {
-                allProspects.push({ name, addr: item.display_name, lat: parseFloat(item.lat), lng: parseFloat(item.lon) });
+          const catTerm = categoryKey === 'ALL' ? 'supermercado padaria pet shop' : categoryKey;
+          const nomUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(catTerm + ', Rondonopolis, MT')}&limit=30&countrycodes=br&addressdetails=1`;
+          const nResp = await fetch(nomUrl);
+          const nData = await nResp.json();
+          if (nData && Array.isArray(nData)) {
+            nData.forEach(item => {
+              const name = item.display_name.split(',')[0] || item.name;
+              if (name && !rawProspects.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+                const pLat = parseFloat(item.lat);
+                const pLng = parseFloat(item.lon);
+                rawProspects.push({
+                  name: name,
+                  cat: 'Comércio Local',
+                  addr: item.display_name,
+                  phone: '',
+                  lat: pLat,
+                  lng: pLng,
+                  distKm: haversineDistance(userLat, userLng, pLat, pLng)
+                });
               }
             });
           }
         } catch(e) {}
       }
 
-      if (allProspects.length > 0) {
-        STATE.googleProspects = allProspects;
-        syncProspects();
-        renderMapMarkers();
-        updateRadarHUD();
-        alert(`⚡ Varredura Completa Concluída!\n\nEncontrados ${allProspects.length} prospects comerciais em ${targetCity} ao redor da sua posição!`);
+      // Ordena por proximidade do GPS
+      rawProspects.sort((a,b) => a.distKm - b.distKm);
+
+      window.STATE_OVERPASS_PROSPECTS = rawProspects;
+      STATE.googleProspects = rawProspects;
+      syncProspects();
+      renderMapMarkers();
+      updateRadarHUD();
+
+      renderProspectCards(rawProspects, filterText);
+    }
+
+    function filterProspectsLive(text) {
+      if (!window.STATE_OVERPASS_PROSPECTS) return;
+      renderProspectCards(window.STATE_OVERPASS_PROSPECTS, text);
+    }
+
+    function renderProspectCards(list, filterText = '') {
+      const box = document.getElementById('google-results-box');
+      if (!list || list.length === 0) {
+        box.innerHTML = `
+          <div style="background:#121929; border:1px solid #1e293b; padding:16px; border-radius:12px; text-align:center; color:var(--text-muted);">
+            Nenhum prospect comercial retornado nesta categoria no raio de busca. Tente alterar o segmento acima.
+          </div>
+        `;
+        return;
       }
-      await performGoogleSearch(targetCity, 'todos');
+
+      let filtered = list;
+      if (filterText && filterText.trim().length > 0) {
+        const queryNorm = filterText.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        filtered = list.filter(p => {
+          const n = p.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+          const a = p.addr.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+          return n.includes(queryNorm) || a.includes(queryNorm);
+        });
+      }
+
+      let html = `<div style="font-size:11px; font-weight:bold; color:var(--accent-green); margin-bottom:8px;">🔥 ${filtered.length} Prospects Comerciais Encontrados no Raio:</div>`;
+
+      filtered.forEach(p => {
+        const distStr = formatDistance(p.distKm);
+        const pColor = getProximityColor ? getProximityColor(p.distKm) : '#3b82f6';
+        const cleanPhone = p.phone ? p.phone.replace(/\D/g, '') : '';
+
+        // Verifica se já existe na base interna
+        const nameNorm = p.name.toLowerCase().trim();
+        const existingClient = STATE.rawClients.find(c => c.c && c.c.toLowerCase().includes(nameNorm));
+
+        const badgeHtml = existingClient 
+          ? `<span style="background:rgba(16,185,129,0.2); color:#34d399; padding:2px 8px; border-radius:4px; font-size:9px; font-weight:bold;">✅ CLIENTE BASE (${existingClient.f})</span>`
+          : `<span style="background:rgba(236,72,153,0.2); color:#f472b6; padding:2px 8px; border-radius:4px; font-size:9px; font-weight:bold;">🔥 PROSPECT NOVO</span>`;
+
+        html += `
+          <div style="background:#0f172a; border:1px solid ${pColor}; border-radius:10px; padding:12px; margin-bottom:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <b style="color:#fff; font-size:13px;">🏪 ${p.name}</b>
+                <div style="font-size:10px; color:var(--text-muted); margin-top:2px;">📍 ${p.addr}</div>
+              </div>
+              <div style="text-align:right;">
+                <span style="font-size:11px; font-weight:bold; color:${pColor};">📏 ${distStr}</span>
+                <div style="margin-top:2px;">${badgeHtml}</div>
+              </div>
+            </div>
+
+            <div style="display:flex; gap:6px; margin-top:10px; flex-wrap:wrap;">
+              <button onclick="zoomToProspect(${p.lat}, ${p.lng}, '${p.name.replace(/'/g,"")}')" class="act-btn" style="background:#2563eb; color:#fff; font-size:10px; padding:4px 8px;">📍 Ver no Mapa</button>
+              ${!existingClient ? `<button onclick="addGoogleAsProspect('${p.name.replace(/'/g,"")}', '${p.addr.replace(/'/g,"")}', ${p.lat}, ${p.lng})" class="act-btn" style="background:#ec4899; color:#fff; font-size:10px; padding:4px 8px;">➕ Cadastrar Prospect</button>` : ''}
+              <button onclick="openProspectVisitModal('${p.name.replace(/'/g,"")}', ${p.lat}, ${p.lng})" class="act-btn" style="background:#8b5cf6; color:#fff; font-size:10px; padding:4px 8px;">📝 Agendar Visita</button>
+              ${cleanPhone ? `<a href="https://wa.me/55${cleanPhone}" target="_blank" class="act-btn wa" style="font-size:10px; padding:4px 8px; text-decoration:none;">💬 WhatsApp</a>` : ''}
+              <a href="https://waze.com/ul?ll=${p.lat},${p.lng}&navigate=yes" target="_blank" class="act-btn waze" style="font-size:10px; padding:4px 8px; text-decoration:none;">🧭 Waze</a>
+            </div>
+          </div>
+        `;
+      });
+
+      box.innerHTML = html;
+    }
+
+    window.zoomToProspect = function(lat, lng, name) {
+      switchTab('view-map');
+      if (STATE.map) {
+        STATE.map.setView([lat, lng], 17);
+        L.popup()
+          .setLatLng([lat, lng])
+          .setContent(`<b>🔥 Prospect: ${name}</b><br/><button onclick="openProspectVisitModal('${name}', ${lat}, ${lng})" style="background:#8b5cf6; color:#fff; border:none; padding:4px 8px; border-radius:4px; margin-top:4px; font-weight:bold; cursor:pointer;">📝 Registrar Visita</button>`)
+          .openOn(STATE.map);
+      }
+    };
+
+    window.openProspectVisitModal = function(name, lat, lng) {
+      document.getElementById('vmodal-client-id').value = 'PROSPECT_' + Date.now();
+      document.getElementById('vmodal-client-name').innerText = `📝 Visita Prospect: ${name}`;
+      document.getElementById('modal-visit').classList.add('active');
+    };
+
+    async function scanAllCategoriesNow() {
+      await performOverpassProspectSearch('ALL');
     }
 
     function syncProspects() {
       if (STATE.googleProspects && STATE.googleProspects.length > 0) {
         localStorage.setItem('MAPA_PROSPECTS', JSON.stringify(STATE.googleProspects));
         IDB.saveStore('prospects', STATE.googleProspects);
-      }
-    }
-
-    async function executeGoogleSearch() {
-      const q = document.getElementById('inp-google-query').value.trim();
-      if (!q) {
-        alert('Digite um termo ou categoria para buscar (ex: pet shop, supermercado, padaria).');
-        return;
-      }
-      await performGoogleSearch(q, 'geral');
-    }
-
-    async function performGoogleSearch(query, category) {
-      const box = document.getElementById('google-results-box');
-      box.innerHTML = `
-        <div style="background:rgba(59,130,246,0.1); border:1px solid var(--accent-blue); padding:16px; border-radius:12px; text-align:center; color:#fff;">
-          <div class="spinner" style="margin: 0 auto 10px;"></div>
-          <b>🌐 Varrendo Prospects ao seu Redor no GPS...</b>
-          <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">Pesquisando "${query}"...</div>
-        </div>
-      `;
-
-      if (!navigator.onLine) {
-        const cached = await IDB.getStore('prospects');
-        if (cached && cached.length > 0) {
-          STATE.googleProspects = cached;
-          renderMapMarkers();
-          updateRadarHUD();
-          box.innerHTML = `
-            <div style="background:rgba(245,158,11,0.1); border:1px solid #f59e0b; padding:12px; border-radius:10px; color:#fbbf24; font-size:12px;">
-              📡 <b>Modo Offline:</b> Dispositivo sem internet. Exibindo <b>${cached.length} prospects</b> salvos localmente.
-            </div>
-          `;
-          return;
-        }
-      }
-
-      let targetCity = '';
-      if (STATE.activeClients && STATE.activeClients[0] && STATE.activeClients[0].m) {
-        targetCity = `${STATE.activeClients[0].m}, ${STATE.activeClients[0].u}`;
-      } else {
-        const inpC = document.getElementById('inp-custom-city');
-        if (inpC && inpC.value.trim()) targetCity = inpC.value.trim();
-        else targetCity = 'Rondonópolis, MT';
-      }
-
-      // Se a busca não cita cidade explicitamente, anexa a cidade atual do usuário para o OpenStreetMap
-      let formattedQuery = query.replace(/\s+em\s+/gi, ', ').replace(/\s+-\s+/gi, ', ');
-      const userLat = STATE.userPos ? STATE.userPos.lat : null;
-      const userLng = STATE.userPos ? STATE.userPos.lng : null;
-
-      const normQuery = query.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
-      const queryWords = normQuery.split(/[\s,]+/);
-
-      const isExplicitCityInQuery = STATE.rawClients.some(c => c.m && queryWords.some(w => w.length > 3 && w === c.m.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase()));
-
-      if (!isExplicitCityInQuery && !formattedQuery.toLowerCase().includes(targetCity.split(',')[0].toLowerCase())) {
-        formattedQuery = `${formattedQuery}, ${targetCity}`;
-      }
-
-      try {
-        let url = '';
-        if (userLat !== null && userLng !== null) {
-          const dDeg = 0.18; // ~18km em volta da sua posição GPS real!
-          url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formattedQuery)}&lat=${userLat}&lon=${userLng}&bounded=1&viewbox=${userLng-dDeg},${userLat+dDeg},${userLng+dDeg},${userLat-dDeg}&limit=40&countrycodes=br&addressdetails=1`;
-        } else {
-          url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formattedQuery)}&limit=35&countrycodes=br&addressdetails=1`;
-        }
-
-        const resp = await fetch(url);
-        let data = await resp.json();
-
-        if ((!data || data.length < 5) && userLat !== null) {
-          const fallbackUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formattedQuery)}&limit=35&countrycodes=br&addressdetails=1`;
-          const fResp = await fetch(fallbackUrl);
-          const fData = await fResp.json();
-          if (fData && fData.length > 0) data = (data || []).concat(fData);
-        }
-
-        // Busca Clientes Cadastrados na Base Interna (Filtrado estritamente por Proximidade/Cidade do Usuário)
-        let internalMatches = STATE.rawClients.filter(c => {
-          if (!c.m) return false;
-          const normCity = c.m.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
-          const isCityMatch = queryWords.some(w => w.length > 3 && w === normCity);
-          const isNameMatch = c.c && c.c.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(normQuery);
-
-          if (isExplicitCityInQuery) {
-            return isCityMatch || isNameMatch;
-          }
-
-          // Se a busca é por categoria/termo (ex: "padaria"), restringe estritamente aos clientes num raio de 60km do GPS ou na cidade ativa!
-          let isLocalRegion = false;
-          if (userLat !== null && c.lt !== null && c.lg !== null) {
-            const distKm = haversineDistance(userLat, userLng, c.lt, c.lg);
-            isLocalRegion = distKm <= 60;
-          } else if (targetCity) {
-            const currentNormCity = targetCity.split(',')[0].normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
-            isLocalRegion = (normCity === currentNormCity);
-          }
-
-          return isNameMatch && isLocalRegion;
-        });
-
-        // Ordena por proximidade do usuário (clientes mais próximos primeiro)
-        if (userLat !== null && internalMatches.length > 0) {
-          internalMatches.sort((a, b) => {
-            const dA = (a.lt !== null) ? haversineDistance(userLat, userLng, a.lt, a.lg) : 9999;
-            const dB = (b.lt !== null) ? haversineDistance(userLat, userLng, b.lt, b.lg) : 9999;
-            return dA - dB;
-          });
-        }
-
-        internalMatches = internalMatches.slice(0, 10);
-
-        let html = '';
-
-        if (internalMatches.length > 0) {
-          html += `<div style="font-size:11px; font-weight:bold; color:var(--accent-blue); margin-bottom:6px;">📋 Clientes Cadastrados na Base Interna da Sua Região (${internalMatches.length} na Cidade/Raio):</div>`;
-          internalMatches.forEach(c => {
-            const cleanTel = c.t ? c.t.replace(/\D/g, '') : '';
-            const cDistStr = (userLat !== null && c.lt !== null) ? formatDistance(haversineDistance(userLat, userLng, c.lt, c.lg)) : '';
-            html += `
-              <div style="background:rgba(30,41,59,0.9); border:1px solid #334155; border-radius:10px; padding:10px; margin-bottom:8px;">
-                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                  <b style="color:#fff; font-size:12px;">🏢 ${c.c}</b>
-                  <span style="background:rgba(16,185,129,0.2); color:#34d399; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold;">CLIENTE BASE (${c.f})</span>
-                </div>
-                <div style="font-size:10px; color:var(--text-muted); margin-top:2px;">CNPJ: ${c.j} · ${c.m}/${c.u} ${cDistStr ? `· 📍 ${cDistStr}` : ''}</div>
-                <div style="display:flex; gap:4px; margin-top:6px;">
-                  <button onclick="openDossierModal('${c.id}')" class="act-btn dossier" style="font-size:9px;">📄 Ficha Completa</button>
-                  ${cleanTel ? `<a href="https://wa.me/55${cleanTel}" target="_blank" class="act-btn wa" style="font-size:9px;">💬 Whats</a>` : ''}
-                </div>
-              </div>
-            `;
-          });
-        }
-
-        if (data && data.length > 0) {
-          STATE.googleProspects = [];
-          data.forEach(item => {
-            const lat = parseFloat(item.lat);
-            const lon = parseFloat(item.lon);
-            const name = item.display_name.split(',')[0] || item.name || 'Estabelecimento Comercial';
-            const addr = item.display_name;
-            STATE.googleProspects.push({ name, addr, lat, lng: lon });
-          });
-
-          syncProspects();
-          renderMapMarkers();
-          updateRadarHUD();
-
-          html += `<div style="font-size:11px; font-weight:bold; color:var(--accent-green); margin-top:10px; margin-bottom:6px;">🌐 Varredura do Google Maps / OpenStreetMap (${data.length} Locais no Mapa & Radar):</div>`;
-          
-          data.forEach(item => {
-            const lat = parseFloat(item.lat);
-            const lon = parseFloat(item.lon);
-            const name = item.display_name.split(',')[0] || item.name || 'Estabelecimento Comercial';
-            const addr = item.display_name;
-
-            const nameClean = name.toLowerCase().trim();
-            const existingClient = STATE.rawClients.find(c => {
-              if (!c.c) return false;
-              const cName = c.c.toLowerCase().trim();
-              if (cName.length < 3) return false;
-              const nameMatch = cName.includes(nameClean) || nameClean.includes(cName);
-              if (!nameMatch) return false;
-
-              // 1. Se o cliente possui GPS, valida proximidade geográfica (máximo 5 km)
-              if (c.lt !== null && c.lg !== null) {
-                const distKm = haversineDistance(lat, lon, c.lt, c.lg);
-                return distKm <= 5.0;
-              }
-
-              // 2. Se não possui GPS, valida se a cidade/município bate com o endereço retornado pelo Google
-              if (c.m && addr.toLowerCase().includes(c.m.toLowerCase())) return true;
-
-              return false;
-            });
-
-            const isCadastrado = !!existingClient;
-            const statusBadge = isCadastrado 
-              ? `<span style="background:rgba(16,185,129,0.2); color:#34d399; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:bold;">✅ JÁ É CLIENTE DA BASE (${existingClient.f})</span>`
-              : `<span style="background:rgba(236,72,153,0.2); color:#f472b6; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:bold;">🔥 NOVO PROSPECT GOOGLE</span>`;
-
-            const gpDist = (STATE.userPos) ? haversineDistance(STATE.userPos.lat, STATE.userPos.lng, lat, lon) : null;
-            const gpDistStr = gpDist !== null ? formatDistance(gpDist) : '';
-
-            html += `
-              <div style="background:var(--bg-card); border:1px solid ${isCadastrado ? 'rgba(16,185,129,0.4)' : 'rgba(236,72,153,0.3)'}; border-radius:10px; padding:12px; margin-bottom:8px;">
-                <div style="margin-bottom:6px;">
-                  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:4px;">
-                    <b style="color:#fff; font-size:13px;">🌐 ${name}</b>
-                    ${statusBadge}
-                  </div>
-                  ${gpDistStr ? `<div style="font-size:11px; font-weight:bold; color:var(--accent-blue); margin-top:4px;">📏 ${gpDistStr} de você</div>` : ''}
-                </div>
-                <div style="font-size:11px; color:#cbd5e1; margin-top:2px; word-break:break-word;">📍 ${addr.length > 80 ? addr.slice(0,80) + '...' : addr}</div>
-                <div style="display:flex; gap:5px; margin-top:8px; flex-wrap:wrap;">
-                  <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lon}" target="_blank" class="act-btn maps">🗺️ Maps</a>
-                  <a href="https://waze.com/ul?ll=${lat},${lon}&navigate=yes" target="_blank" class="act-btn waze">🧭 Waze</a>
-                  ${isCadastrado ? `<button onclick="openDossierModal('${existingClient.id}')" class="act-btn dossier">📄 Ficha</button>` : ''}
-                  ${!isCadastrado ? `<button onclick="addGoogleAsProspect('${name.replace(/'/g, "")}', '${addr.replace(/'/g, "")}', ${lat}, ${lon})" class="act-btn" style="background:var(--accent-pink); color:#fff;">+ Salvar Prospect</button>` : ''}
-                </div>
-              </div>
-            `;
-          });
-        } else if (internalMatches.length === 0) {
-          html = `<div style="background:#121929; padding:14px; border-radius:10px; color:var(--text-muted); text-align:center;">Nenhum local retornado para "${query}". Tente buscar por "Supermercado, Campo Grande, MS".</div>`;
-        }
-
-        box.innerHTML = html;
-      } catch (err) {
-        box.innerHTML = `<div style="background:rgba(239,68,68,0.1); border:1px solid var(--accent-red); padding:12px; border-radius:10px; color:#fca5a5;">Erro ao realizar busca online: ${err.message}</div>`;
       }
     }
 
@@ -4157,7 +4093,7 @@
         if (targetId === 'view-map' && STATE.map) setTimeout(() => STATE.map.invalidateSize(), 200);
         if (targetId === 'view-dashboard') renderDashboard();
         if (targetId === 'view-google' && !document.getElementById('google-results-box').children.length) {
-          autoScanGoogleProspects();
+          performOverpassProspectSearch('ALL');
         }
       });
     });
@@ -4176,7 +4112,10 @@
         }).catch(() => {});
 
         navigator.serviceWorker.register('sw.js')
-          .then(reg => console.log('[SW PWA] Registrado ServiceWorker v108 com sucesso:', reg.scope))
+          .then(reg => {
+            console.log('[SW PWA] Registrado ServiceWorker v110 com sucesso:', reg.scope);
+            reg.update();
+          })
           .catch(err => console.warn('[SW PWA] Erro ao registrar SW:', err));
       });
     }
