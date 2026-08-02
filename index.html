@@ -3350,53 +3350,97 @@
         }
       }
 
-      const formattedQuery = query.replace(/\s+em\s+/gi, ', ').replace(/\s+-\s+/gi, ', ');
+      let targetCity = '';
+      if (STATE.activeClients && STATE.activeClients[0] && STATE.activeClients[0].m) {
+        targetCity = `${STATE.activeClients[0].m}, ${STATE.activeClients[0].u}`;
+      } else {
+        const inpC = document.getElementById('inp-custom-city');
+        if (inpC && inpC.value.trim()) targetCity = inpC.value.trim();
+        else targetCity = 'Rondonópolis, MT';
+      }
+
+      // Se a busca não cita cidade explicitamente, anexa a cidade atual do usuário para o OpenStreetMap
+      let formattedQuery = query.replace(/\s+em\s+/gi, ', ').replace(/\s+-\s+/gi, ', ');
       const userLat = STATE.userPos ? STATE.userPos.lat : null;
       const userLng = STATE.userPos ? STATE.userPos.lng : null;
+
+      const normQuery = query.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+      const queryWords = normQuery.split(/[\s,]+/);
+
+      const isExplicitCityInQuery = STATE.rawClients.some(c => c.m && queryWords.some(w => w.length > 3 && w === c.m.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase()));
+
+      if (!isExplicitCityInQuery && !formattedQuery.toLowerCase().includes(targetCity.split(',')[0].toLowerCase())) {
+        formattedQuery = `${formattedQuery}, ${targetCity}`;
+      }
 
       try {
         let url = '';
         if (userLat !== null && userLng !== null) {
-          const dDeg = 0.15;
+          const dDeg = 0.18; // ~18km em volta da sua posição GPS real!
           url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formattedQuery)}&lat=${userLat}&lon=${userLng}&bounded=1&viewbox=${userLng-dDeg},${userLat+dDeg},${userLng+dDeg},${userLat-dDeg}&limit=40&countrycodes=br&addressdetails=1`;
         } else {
-          url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formattedQuery)}&limit=30&countrycodes=br&addressdetails=1`;
+          url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formattedQuery)}&limit=35&countrycodes=br&addressdetails=1`;
         }
 
         const resp = await fetch(url);
         let data = await resp.json();
 
         if ((!data || data.length < 5) && userLat !== null) {
-          const fallbackUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formattedQuery)}&limit=30&countrycodes=br&addressdetails=1`;
+          const fallbackUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formattedQuery)}&limit=35&countrycodes=br&addressdetails=1`;
           const fResp = await fetch(fallbackUrl);
           const fData = await fResp.json();
           if (fData && fData.length > 0) data = (data || []).concat(fData);
         }
 
-        const normQuery = query.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
-        const queryWords = normQuery.split(/[\s,]+/);
-
-        const internalMatches = STATE.rawClients.filter(c => {
+        // Busca Clientes Cadastrados na Base Interna (Filtrado estritamente por Proximidade/Cidade do Usuário)
+        let internalMatches = STATE.rawClients.filter(c => {
           if (!c.m) return false;
           const normCity = c.m.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
           const isCityMatch = queryWords.some(w => w.length > 3 && w === normCity);
           const isNameMatch = c.c && c.c.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(normQuery);
-          return isCityMatch || isNameMatch;
-        }).slice(0, 10);
+
+          if (isExplicitCityInQuery) {
+            return isCityMatch || isNameMatch;
+          }
+
+          // Se a busca é por categoria/termo (ex: "padaria"), restringe estritamente aos clientes num raio de 60km do GPS ou na cidade ativa!
+          let isLocalRegion = false;
+          if (userLat !== null && c.lt !== null && c.lg !== null) {
+            const distKm = haversineDistance(userLat, userLng, c.lt, c.lg);
+            isLocalRegion = distKm <= 60;
+          } else if (targetCity) {
+            const currentNormCity = targetCity.split(',')[0].normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+            isLocalRegion = (normCity === currentNormCity);
+          }
+
+          return isNameMatch && isLocalRegion;
+        });
+
+        // Ordena por proximidade do usuário (clientes mais próximos primeiro)
+        if (userLat !== null && internalMatches.length > 0) {
+          internalMatches.sort((a, b) => {
+            const dA = (a.lt !== null) ? haversineDistance(userLat, userLng, a.lt, a.lg) : 9999;
+            const dB = (b.lt !== null) ? haversineDistance(userLat, userLng, b.lt, b.lg) : 9999;
+            return dA - dB;
+          });
+        }
+
+        internalMatches = internalMatches.slice(0, 10);
 
         let html = '';
 
         if (internalMatches.length > 0) {
-          html += `<div style="font-size:11px; font-weight:bold; color:var(--accent-blue); margin-bottom:6px;">📋 Clientes Cadastrados na Base Interna (${internalMatches.length} em Destaque):</div>`;
+          html += `<div style="font-size:11px; font-weight:bold; color:var(--accent-blue); margin-bottom:6px;">📋 Clientes Cadastrados na Base Interna da Sua Região (${internalMatches.length} na Cidade/Raio):</div>`;
           internalMatches.forEach(c => {
             const cleanTel = c.t ? c.t.replace(/\D/g, '') : '';
+            const cDistStr = (userLat !== null && c.lt !== null) ? formatDistance(haversineDistance(userLat, userLng, c.lt, c.lg)) : '';
             html += `
               <div style="background:rgba(30,41,59,0.9); border:1px solid #334155; border-radius:10px; padding:10px; margin-bottom:8px;">
                 <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                   <b style="color:#fff; font-size:12px;">🏢 ${c.c}</b>
                   <span style="background:rgba(16,185,129,0.2); color:#34d399; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold;">CLIENTE BASE (${c.f})</span>
                 </div>
-                <div style="font-size:10px; color:var(--text-muted); margin-top:2px;">CNPJ: ${c.j} · ${c.m}/${c.u}</div>
+                <div style="font-size:10px; color:var(--text-muted); margin-top:2px;">CNPJ: ${c.j} · ${c.m}/${c.u} ${cDistStr ? `· 📍 ${cDistStr}` : ''}</div>
                 <div style="display:flex; gap:4px; margin-top:6px;">
                   <button onclick="openDossierModal('${c.id}')" class="act-btn dossier" style="font-size:9px;">📄 Ficha Completa</button>
                   ${cleanTel ? `<a href="https://wa.me/55${cleanTel}" target="_blank" class="act-btn wa" style="font-size:9px;">💬 Whats</a>` : ''}
