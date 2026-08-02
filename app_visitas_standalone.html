@@ -1127,12 +1127,636 @@
     </div>
   </nav>
 
+      <div style="display:flex; align-items:center; gap:4px;">
+        <span id="lbl-online-status" style="font-size:10px; font-weight:bold; color:#10b981; margin-right:4px;">🟢 ONLINE</span>
+        <div class="user-pill" onclick="openUserModal()">
+          <span>👤</span><span id="lbl-user-name">Usuário</span>
+        </div>
+        <button class="btn-logout" style="background:rgba(245,158,11,0.25); border-color:rgba(245,158,11,0.5); color:#fbbf24;" onclick="openHelpGuideModal()" title="Guia de Uso & Instalação">📖 Guia</button>
+        <button class="btn-logout" style="background:rgba(59,130,246,0.25); border-color:rgba(59,130,246,0.5); color:#93c5fd;" onclick="forceAppUpdate()" title="Atualizar aplicativo no celular">🔄 Atualizar</button>
+        <button class="btn-logout" onclick="logoutUser()" title="Sair do Sistema">🚪 Sair</button>
+      </div>
+    </div>
+    
+    <div class="search-bar-row">
+      <div class="search-input-wrap">
+        <input type="text" id="inp-search" placeholder="🔍 Nome, CNPJ, Cidade, Filial, CNAE..." autocomplete="off"/>
+        <span id="btn-clear-search" class="search-clear">✕</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- QUICK TOOLBAR -->
+  <div id="quick-toolbar" style="display:none;">
+    <button id="btn-gps-my" class="btn-tb active" onclick="triggerGPS()">📍 Minha Posição</button>
+    <button id="btn-gps-city" class="btn-tb" onclick="simularPosicaoCidade()">🏙️ Cidade</button>
+    
+    <!-- Heatmap & Rota Otimizada -->
+    <button id="btn-heatmap" class="btn-tb" style="color: #f59e0b; border-color: rgba(245,158,11,0.5);" onclick="toggleHeatmap()">🔥 Heatmap (OFF)</button>
+    <button id="btn-route-opt" class="btn-tb" style="color: #10b981; border-color: rgba(16,185,129,0.5); font-weight: bold;" onclick="openRouteOptModal()">🧭 Rota Otimizada</button>
+
+    <!-- Botão de Varredura Completa 1-Clique -->
+    <button id="btn-scan-all-now" class="btn-tb" style="background: linear-gradient(135deg, #ec4899, #8b5cf6); color: #fff; font-weight: bold; border:none;" onclick="scanAllCategoriesNow()">⚡ Varrer Tudo (10 Segmentos)</button>
+
+    <!-- Seletor de Camadas do Mapa (Ver Só Cliente, Só Prospect ou Ambos) -->
+    <select id="sel-map-mode" class="select-tb" style="color: var(--accent-pink); font-weight:bold; border-color: rgba(236,72,153,0.5);">
+      <option value="ALL" selected>🌟 Ver: Clientes + Prospects</option>
+      <option value="BASE">🏢 Ver: Apenas Clientes Base</option>
+      <option value="PROSPECTS">🌐 Ver: Apenas Prospects Google</option>
+    </select>
+
+    <button id="btn-add-photo-pin" class="btn-tb" style="color: var(--accent-pink); border-color: rgba(236,72,153,0.4);" onclick="openPhotoPinModal()">📷 Foto GPS</button>
+    
+    <select id="sel-radius" class="select-tb">
+      <option value="0.5">500 m</option>
+      <option value="1" selected>Raio: 1 km</option>
+      <option value="3">Raio: 3 km</option>
+      <option value="5">Raio: 5 km</option>
+      <option value="10">Raio: 10 km</option>
+      <option value="25">Raio: 25 km</option>
+      <option value="9999">Todos</option>
+    </select>
+
+    <select id="sel-cnae" class="select-tb" style="color: var(--accent-green);">
+      <option value="">CNAE: Todos</option>
+      <option value="TARGET" selected>🎯 Alvo (Varejo/Food)</option>
+    </select>
+
+    <select id="sel-filial" class="select-tb">
+      <option value="">Filial: Todas</option>
+    </select>
+
+    <select id="sel-status" class="select-tb">
+      <option value="">Status: Todos</option>
+      <option value="ATIVO" selected>ATIVOS</option>
+      <option value="INATIVO">INATIVOS</option>
+    </select>
+  </div>
+
+  <!-- MAIN CONTENT VIEWS -->
+  <main id="main-content" style="display:none;">
+    
+    <!-- VIEW 1: MAPA -->
+    <section id="view-map" class="view-panel active">
+      <div id="map-container">
+        <div id="map"></div>
+        <button class="fab-gps" onclick="triggerGPS()" title="Minha Posição GPS">🎯</button>
+      </div>
+    </section>
+
+    <!-- VIEW 2: LISTA PRÓXIMOS -->
+    <section id="view-list" class="view-panel">
+      <div id="list-container">
+        <div class="list-summary">
+          <span id="lbl-list-count">0 clientes próximos</span>
+          <span id="lbl-gps-ref" style="font-size:10px; font-family:monospace; color:var(--text-muted);">GPS: Não localizado</span>
+        </div>
+        <div id="cards-wrapper"></div>
+      </div>
+    </section>
+
+    <!-- VIEW 3: RADAR -->
+    <section id="view-radar" class="view-panel">
+      <div id="radar-container">
+        <div class="radar-hud-top">
+          <div>
+            <div style="font-size:14px; font-weight:800; color:#fff;">🎯 RADAR TÁTICO 360°</div>
+            <div style="font-size:10px; color:var(--text-muted);" id="lbl-radar-subtitle">Varredura visual de clientes no raio de ação</div>
+          </div>
+          <button class="act-btn" style="padding:4px 8px; font-size:10px;" onclick="triggerGPS()">📍 Recadastrar GPS</button>
+        </div>
+
+        <div class="radar-box">
+          <canvas id="radar-canvas" width="340" height="340"></canvas>
+        </div>
+
+        <div class="radar-kpi-row">
+          <div class="rkpi-card">
+            <val id="rkpi-total">0</val>
+            <lbl>No Raio</lbl>
+          </div>
+          <div class="rkpi-card">
+            <val id="rkpi-target" style="color:var(--accent-green);">0</val>
+            <lbl>CNAE Alvo</lbl>
+          </div>
+          <div class="rkpi-card">
+            <val id="rkpi-closest" style="font-size:13px; color:var(--accent-blue);">-</val>
+            <lbl>Mais Próximo</lbl>
+          </div>
+        </div>
+
+        <div style="padding:0 10px 10px;">
+          <div style="font-size:11px; color:#cbd5e1; font-weight:bold; margin-bottom:6px;" id="lbl-radar-info">
+            🎯 Radar em tempo real (Toque nos blips do radar!)
+          </div>
+          <div style="font-size:11px; font-weight:bold; color:var(--text-muted); margin-bottom:6px;">📍 Alvos no Raio do Radar (Toque para abrir ações):</div>
+          <div id="radar-targets-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 4: DASHBOARD GERENCIAL BI -->
+    <section id="view-dashboard" class="view-panel">
+      <div id="dash-container">
+        <div style="font-size:16px; font-weight:bold; color:#fff; margin-bottom:4px; display:flex; align-items:center; justify-content:space-between;">
+          <span>📊 Dashboard Gerencial Comercial</span>
+          <span style="font-size:10px; background:rgba(59,130,246,0.2); color:#60a5fa; padding:2px 8px; border-radius:12px; font-weight:normal;">Real-Time BI</span>
+        </div>
+        <div style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">Visão executiva de inteligência territorial e cobertura de vendas.</div>
+
+        <div id="smart-alerts-box" style="margin-bottom:12px;"></div>
+
+        <div class="dash-kpi-grid">
+          <div class="dkpi-card">
+            <lbl>Base de Clientes</lbl>
+            <val id="dkpi-total">0</val>
+            <sub id="dkpi-sub-total">Carregando...</sub>
+          </div>
+          <div class="dkpi-card">
+            <lbl>CNAE Alvo (Varejo/Food)</lbl>
+            <val id="dkpi-target" style="color:var(--accent-green);">0</val>
+            <sub id="dkpi-sub-target">0% da base</sub>
+          </div>
+          <div class="dkpi-card">
+            <lbl>Visitas Registradas</lbl>
+            <val id="dkpi-visits" style="color:var(--accent-purple);">0</val>
+            <sub id="dkpi-sub-visits">Histórico salvo</sub>
+          </div>
+          <div class="dkpi-card">
+            <lbl>Prospects Salvos</lbl>
+            <val id="dkpi-prospects" style="color:var(--accent-pink);">0</val>
+            <sub id="dkpi-sub-prospects">Oportunidades Google</sub>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <h4>🏢 Distribuição de Clientes por Filial</h4>
+          <div class="chart-wrap"><canvas id="chart-filiais"></canvas></div>
+        </div>
+
+        <div class="chart-card">
+          <h4>🏙️ Top 10 Cidades de Maior Concentração</h4>
+          <div class="chart-wrap"><canvas id="chart-cities"></canvas></div>
+        </div>
+
+        <div class="chart-card">
+          <h4>📈 Histórico de Atendimento & Visitas</h4>
+          <div class="chart-wrap"><canvas id="chart-visits"></canvas></div>
+        </div>
+
+        <div class="chart-card">
+          <h4>🎯 Status e Atividade da Carteira</h4>
+          <div class="chart-wrap"><canvas id="chart-status"></canvas></div>
+        </div>
+
+        <div class="chart-card">
+          <h4>🗺️ Cobertura Regional de Vendas por Cidade</h4>
+          <div id="regional-coverage-box" style="margin-top:8px;"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 5: FOTOS NO MAPA -->
+    <section id="view-photos" class="view-panel">
+      <div style="padding:12px; height:100%; overflow-y:auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <div>
+            <div style="font-size:14px; font-weight:800; color:#fff;">📷 Galeria de Fotos no GPS</div>
+            <div style="font-size:10px; color:var(--text-muted);">Comprovação visual de fachadas e gôndolas em campo</div>
+          </div>
+          <button class="act-btn" style="background:var(--accent-pink); color:#fff;" onclick="openPhotoPinModal()">+ Nova Foto</button>
+        </div>
+        <div id="photo-pins-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"></div>
+      </div>
+    </section>
+
+    <!-- VIEW 6: REGISTRO DE VISITAS -->
+    <section id="view-visitas" class="view-panel">
+      <div style="padding:12px; height:100%; overflow-y:auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <div>
+            <div style="font-size:14px; font-weight:800; color:#fff;">📝 Registro de Visitas & Pedidos</div>
+            <div style="font-size:10px; color:var(--text-muted);">Histórico de contatos e relatórios de campo</div>
+          </div>
+        </div>
+        <div id="visits-history-list"></div>
+      </div>
+    </section>
+
+    <!-- VIEW 7: PROSPECÇÃO GOOGLE -->
+    <section id="view-google" class="view-panel">
+      <div style="padding:12px; height:100%; overflow-y:auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <div>
+            <div style="font-size:14px; font-weight:800; color:#fff;">🌐 Prospecção Google Maps & OSM</div>
+            <div style="font-size:10px; color:var(--text-muted);">Busque estabelecimentos ao redor e identifique novos clientes</div>
+          </div>
+          <button class="act-btn" style="background:var(--accent-blue); color:#fff;" onclick="scanAllCategoriesNow()">⚡ Varrer Região</button>
+        </div>
+
+        <div class="prospect-search-card">
+          <div style="font-size:11px; font-weight:bold; color:var(--accent-blue); margin-bottom:6px;">⚡ Varredura Automática nos Seus Segmentos Alvo</div>
+          <div style="display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; margin-bottom:8px;">
+            <button class="act-btn" style="background:#2563eb; color:#fff; white-space:nowrap;" onclick="performGoogleSearch('supermercado minimercado mercearia', 'Mercados')">🛒 Mercados</button>
+            <button class="act-btn" style="background:#059669; color:#fff; white-space:nowrap;" onclick="performGoogleSearch('padaria confeitaria panificadora', 'Padarias')">🥖 Padarias</button>
+            <button class="act-btn" style="background:#dc2626; color:#fff; white-space:nowrap;" onclick="performGoogleSearch('açougue casa de carnes', 'Açougues')">🥩 Açougues</button>
+            <button class="act-btn" style="background:#d97706; color:#fff; white-space:nowrap;" onclick="performGoogleSearch('distribuidora de bebidas deposito de bebidas', 'Bebidas')">🍺 Bebidas</button>
+            <button class="act-btn" style="background:#10b981; color:#fff; white-space:nowrap;" onclick="performGoogleSearch('hortifruti sacolao', 'Hortifruti')">🍎 Hortifruti</button>
+            <button class="act-btn" style="background:#8b5cf6; color:#fff; white-space:nowrap;" onclick="performGoogleSearch('conveniencia posto', 'Conveniência')">⛽ Conveniência</button>
+          </div>
+          
+          <div style="display:flex; gap:6px;">
+            <input type="text" id="inp-google-query" style="flex:1; background:#080d1a; border:1px solid var(--border-color); border-radius:8px; padding:8px 10px; color:#fff; font-size:12px;" placeholder="Ex: padaria, supermercado, restaurante..."/>
+            <button class="act-btn" style="background:var(--accent-blue); color:#fff; padding:0 12px;" onclick="performGoogleSearch()">Buscar</button>
+          </div>
+        </div>
+
+        <div id="google-prospects-list"></div>
+      </div>
+    </section>
+
+    <!-- VIEW 8: GESTÃO & ADMIN -->
+    <section id="view-admin" class="view-panel">
+      <div style="padding:12px; height:100%; overflow-y:auto;">
+        <div style="font-size:14px; font-weight:800; color:#fff; margin-bottom:4px;">👥 Gestão de Usuários & Permissões RBAC</div>
+        <div style="font-size:10px; color:var(--text-muted); margin-bottom:12px;">Controle de acesso por módulo, filial e escopo geográfico</div>
+
+        <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:12px; padding:14px; margin-bottom:16px;">
+          <h4 style="font-size:12px; color:#fff; margin-bottom:10px;">➕ Cadastrar Novo Usuário</h4>
+          <form id="form-add-user">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">
+              <input type="text" id="uadmin-user" placeholder="Usuário (login) *" required style="background:#080d1a; border:1px solid var(--border-color); border-radius:6px; padding:6px; color:#fff; font-size:11px;"/>
+              <input type="text" id="uadmin-pass" placeholder="Senha *" required style="background:#080d1a; border:1px solid var(--border-color); border-radius:6px; padding:6px; color:#fff; font-size:11px;"/>
+              <input type="text" id="uadmin-name" placeholder="Nome Completo *" required style="background:#080d1a; border:1px solid var(--border-color); border-radius:6px; padding:6px; color:#fff; font-size:11px; grid-column:1/-1;"/>
+              <select id="uadmin-scope" style="background:#080d1a; border:1px solid var(--border-color); border-radius:6px; padding:6px; color:#fff; font-size:11px;">
+                <option value="BRASIL">Escopo: BRASIL (Todas)</option>
+                <option value="FILIAL">Escopo: Apenas Filial</option>
+              </select>
+              <select id="uadmin-filial-val" style="background:#080d1a; border:1px solid var(--border-color); border-radius:6px; padding:6px; color:#fff; font-size:11px;"></select>
+            </div>
+            
+            <div style="font-size:10px; color:var(--text-muted); margin-bottom:6px;">Módulos Permitidos:</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:6px; font-size:10px; color:#fff; margin-bottom:10px;">
+              <label><input type="checkbox" id="chk-mod-map" checked/> 🗺️ Mapa</label>
+              <label><input type="checkbox" id="chk-mod-list" checked/> 📋 Próximos</label>
+              <label><input type="checkbox" id="chk-mod-radar" checked/> 🎯 Radar</label>
+              <label><input type="checkbox" id="chk-mod-dashboard" checked/> 📊 Dashboard</label>
+              <label><input type="checkbox" id="chk-mod-photos" checked/> 📷 Fotos</label>
+              <label><input type="checkbox" id="chk-mod-visitas" checked/> 📝 Visitas</label>
+              <label><input type="checkbox" id="chk-mod-google" checked/> 🌐 Google</label>
+              <label><input type="checkbox" id="chk-mod-admin"/> 👥 Gestão</label>
+            </div>
+
+            <button type="submit" class="btn-submit" style="font-size:11px; padding:8px;">💾 Salvar Usuário</button>
+          </form>
+        </div>
+
+        <div style="font-size:12px; font-weight:bold; color:#fff; margin-bottom:8px;">📋 Usuários Cadastrados no Sistema:</div>
+        <div id="users-list-box"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL DOSSIÊ DO CLIENTE -->
+  <div id="modal-dossier" class="modal-sheet">
+    <div class="sheet-content">
+      <div class="sheet-header">
+        <h3 id="d-title">Dossiê do Cliente</h3>
+        <button onclick="closeDossierModal()" style="background:none; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;">✕</button>
+      </div>
+
+      <div class="dossier-tabs">
+        <button id="dtab-btn-geral" class="dtab-btn active" onclick="switchDossierTab('geral')">📋 Geral</button>
+        <button id="dtab-btn-fiscal" class="dtab-btn" onclick="switchDossierTab('fiscal')">🏛️ Fiscal / QSA</button>
+        <button id="dtab-btn-fin" class="dtab-btn" onclick="switchDossierTab('fin')">💳 Financeiro</button>
+        <button id="dtab-btn-history" class="dtab-btn" onclick="switchDossierTab('history')">📜 Histórico</button>
+      </div>
+
+      <div class="sheet-body">
+        <!-- TAB 1: GERAL -->
+        <div id="dos-tab-geral" class="dtab-content">
+          <div class="info-grid">
+            <div class="info-item"><label>Razão Social</label><val id="d-razao"></val></div>
+            <div class="info-item"><label>CNPJ</label><val id="d-cnpj"></val></div>
+            <div class="info-item"><label>Filial</label><val id="d-filial"></val></div>
+            <div class="info-item"><label>Status Comercial</label><val id="d-status"></val></div>
+            <div class="info-item"><label>Endereço Completo</label><val id="d-endereco"></val></div>
+            <div class="info-item"><label>Telefone</label><val id="d-fone"></val></div>
+            <div class="info-item"><label>E-mail</label><val id="d-email"></val></div>
+            <div class="info-item"><label>CNAE Principal</label><val id="d-cnae"></val></div>
+          </div>
+          <div class="actions-row">
+            <button id="btn-dos-maps" class="act-btn" style="background:#2563eb; color:#fff;">🗺️ Google Maps</button>
+            <button id="btn-dos-waze" class="act-btn" style="background:#0284c7; color:#fff;">🧭 Waze</button>
+            <button id="btn-dos-whats" class="act-btn" style="background:#10b981; color:#fff;">💬 WhatsApp</button>
+            <button id="btn-dos-phone" class="act-btn" style="background:#059669; color:#fff;">📞 Ligar</button>
+            <button id="btn-dos-visit" class="act-btn" style="background:#8b5cf6; color:#fff;">📝 Nova Visita</button>
+          </div>
+        </div>
+        <!-- TAB 2: FISCAL / QSA -->
+        <div id="dos-tab-fiscal" class="dtab-content" style="display:none;">
+          <div class="info-grid">
+            <div class="info-item"><label>Situação Receita Federal</label><val id="d-sitrf"></val></div>
+            <div class="info-item"><label>Natureza Jurídica</label><val id="d-natjur"></val></div>
+            <div class="info-item"><label>Capital Social</label><val id="d-capsoc"></val></div>
+            <div class="info-item"><label>Tipo de Cadastro</label><val id="d-tipo"></val></div>
+            <div class="info-item"><label>Quadro de Sócios (QSA)</label><val id="d-socios"></val></div>
+            <div class="info-item" style="grid-column: 1 / -1;"><label>CNAEs Secundários</label><val id="d-cnaesec"></val></div>
+          </div>
+        </div>
+        <!-- TAB 3: FINANCEIRO -->
+        <div id="dos-tab-fin" class="dtab-content" style="display:none;">
+          <div class="info-grid">
+            <div class="info-item"><label>Última Compra</label><val id="d-du"></val></div>
+            <div class="info-item"><label>Valor Última Compra</label><val id="d-vu"></val></div>
+            <div class="info-item"><label>Valor Máximo</label><val id="d-vmax"></val></div>
+            <div class="info-item"><label>Limite de Crédito</label><val id="d-lim"></val></div>
+            <div class="info-item"><label>Prazo de Pagamento</label><val id="d-prazo"></val></div>
+            <div class="info-item"><label>Ramo de Atividade</label><val id="d-ativ"></val></div>
+            <div class="info-item"><label>PIB per Capita da Cidade</label><val id="d-pib"></val></div>
+            <div class="info-item"><label>População do Município</label><val id="d-pop"></val></div>
+            <div class="info-item" style="grid-column: 1 / -1;"><label>Observações do Sistema</label><val id="d-obs"></val></div>
+          </div>
+        </div>
+        <!-- TAB 4: HISTÓRICO -->
+        <div id="dos-tab-history" class="dtab-content" style="display:none;">
+          <div id="dos-history-box"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL REGISTRO DE VISITA -->
+  <div id="modal-visit" class="modal-sheet">
+    <div class="sheet-content">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 id="vmodal-client-name" style="font-size:14px; color:#fff;">Registrar Visita</h3>
+        <button onclick="closeVisitModal()" style="background:none; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;">✕</button>
+      </div>
+      <form id="form-log-visit">
+        <input type="hidden" id="vmodal-client-id"/>
+        <div class="form-group">
+          <label>Resultado da Visita *</label>
+          <select id="vmodal-status" required>
+            <option value="Visita Concluída">✅ Visita Concluída com Sucesso</option>
+            <option value="Venda Realizada">🛒 Venda / Pedido Realizado</option>
+            <option value="Proposta Entregue">📄 Proposta Comercial Entregue</option>
+            <option value="Cliente Ausente">🚪 Cliente Ausente / Fechado</option>
+            <option value="Retornar Depois">⏰ Retornar em outra data</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Tipo de Atendimento *</label>
+          <select id="vmodal-type" required>
+            <option value="Presencial">🚗 Presencial (No Local)</option>
+            <option value="Telefone">📞 Ligação Telefônica</option>
+            <option value="WhatsApp">💬 Mensagem WhatsApp</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Observações / Resumo da Visita *</label>
+          <textarea id="vmodal-notes" rows="4" required placeholder="Digite o resumo da conversa..."></textarea>
+        </div>
+        <button type="submit" class="btn-submit" style="background: var(--accent-purple);">💾 Salvar Visita</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL FOTO NO GPS -->
+  <div id="modal-photo-pin" class="modal-sheet">
+    <div class="sheet-content">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 style="font-size:14px; color:var(--accent-pink);">📷 Novo Pino com Foto no GPS</h3>
+        <button onclick="closePhotoPinModal()" style="background:none; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;">✕</button>
+      </div>
+      <form id="form-photo-pin">
+        <div class="form-group">
+          <label>Título / Nome do Local *</label>
+          <input type="text" id="ppin-title" required placeholder="Ex: Fachada Supermercado Silva..."/>
+        </div>
+        <div class="form-group">
+          <label>Categoria *</label>
+          <select id="ppin-cat">
+            <option value="Fachada">🏢 Fachada do Cliente</option>
+            <option value="Gôndola">🛒 Gôndola / Exposição</option>
+            <option value="Concorrente">⚔️ Marca Concorrente</option>
+            <option value="Ponto de Venda">📍 Ponto de Venda Geral</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Foto (Câmera ou Galeria) *</label>
+          <input type="file" id="ppin-file" accept="image/*" capture="environment" required style="background:#080d1a; border:1px solid var(--border-color); border-radius:8px; padding:8px; color:#fff; width:100%; font-size:12px;"/>
+        </div>
+        <div class="form-group">
+          <label>Observação</label>
+          <input type="text" id="ppin-notes" placeholder="Detalhes adicionais..."/>
+        </div>
+        <button type="submit" class="btn-submit" style="background: var(--accent-pink);">📷 Capturar & Marcar no GPS</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL SELEÇÃO DE CIDADE -->
+  <div id="modal-select-city" class="modal-sheet">
+    <div class="sheet-content">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 style="font-size:14px; color:#fff;">🏙️ Selecionar Cidade para Navegar</h3>
+        <button onclick="closeCityModal()" style="background:none; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;">✕</button>
+      </div>
+      <div style="margin-bottom:14px;">
+        <label style="font-size:11px; font-weight:bold; color:#cbd5e1; display:block; margin-bottom:6px;">🔍 Digite o nome de qualquer cidade do Brasil:</label>
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="inp-custom-city" style="flex:1; background:#121929; border:1px solid var(--border-color); padding:10px; border-radius:8px; color:#fff; font-size:13px;" placeholder="Ex: Campo Grande MS, Cuiabá, São Paulo..."/>
+          <button onclick="searchAndMoveToCity()" style="background:var(--accent-blue); color:#fff; border:none; padding:0 14px; border-radius:8px; font-weight:bold; cursor:pointer;">Ir para Cidade</button>
+        </div>
+      </div>
+
+      <div style="font-size:11px; font-weight:bold; color:var(--text-muted); margin-bottom:6px;">⚡ Ou toque em uma cidade frequente:</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;" id="quick-cities-grid">
+        <button class="act-btn" style="background:#1e293b; color:#fff; justify-content:flex-start;" onclick="selectPresetCity(-20.4697, -54.6201, 'Campo Grande MS')">🏙️ Campo Grande - MS</button>
+        <button class="act-btn" style="background:#1e293b; color:#fff; justify-content:flex-start;" onclick="selectPresetCity(-22.2231, -54.8069, 'Dourados MS')">🏙️ Dourados - MS</button>
+        <button class="act-btn" style="background:#1e293b; color:#fff; justify-content:flex-start;" onclick="selectPresetCity(-24.7349, -53.7410, 'Toledo PR')">🏙️ Toledo - PR</button>
+        <button class="act-btn" style="background:#1e293b; color:#fff; justify-content:flex-start;" onclick="selectPresetCity(-24.9558, -53.4552, 'Cascavel PR')">🏙️ Cascavel - PR</button>
+        <button class="act-btn" style="background:#1e293b; color:#fff; justify-content:flex-start;" onclick="selectPresetCity(-25.4284, -49.2733, 'Curitiba PR')">🏙️ Curitiba - PR</button>
+        <button class="act-btn" style="background:#1e293b; color:#fff; justify-content:flex-start;" onclick="selectPresetCity(-23.5505, -46.6333, 'São Paulo SP')">🏙️ São Paulo - SP</button>
+        <button class="act-btn" style="background:#1e293b; color:#fff; justify-content:flex-start;" onclick="selectPresetCity(-15.6010, -56.0974, 'Cuiabá MT')">🏙️ Cuiabá - MT</button>
+        <button class="act-btn" style="background:#1e293b; color:#fff; justify-content:flex-start;" onclick="selectPresetCity(-16.4708, -54.6356, 'Rondonópolis MT')">🏙️ Rondonópolis - MT</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL INTERATIVO ALVO DETECTADO NO RADAR (CLICK NO BLIP DO RADAR) -->
+  <div id="modal-radar-target" class="modal-sheet">
+    <div class="sheet-content" style="border: 2px solid var(--accent-blue); box-shadow: 0 0 30px rgba(59,130,246,0.5);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h3 id="rtarget-title" style="font-size:15px; color:#fff; font-weight:800;">Alvo Detectado no Radar</h3>
+        <button onclick="closeRadarTargetModal()" style="background:none; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;">✕</button>
+      </div>
+      <div id="rtarget-body" style="font-size:12px; color:#cbd5e1; margin-bottom:14px;"></div>
+      <div id="rtarget-actions" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
+    </div>
+  </div>
+
+  <!-- MODAL ROTEIRIZAÇÃO INTELIGENTE (TSP) -->
+  <div id="modal-route-opt" class="modal-sheet">
+    <div class="sheet-content" style="max-height:85vh; border: 2px solid #10b981;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 style="font-size:15px; color:#10b981; font-weight:800; display:flex; align-items:center; gap:6px;">
+          <span>🧭</span> <span>Roteirização Inteligente (Menor Trajeto)</span>
+        </h3>
+        <button onclick="closeRouteOptModal()" style="background:none; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;">✕</button>
+      </div>
+
+      <div style="font-size:11px; color:var(--text-muted); margin-bottom:10px;">
+        Algoritmo TSP (Travelling Salesperson) para calcular a menor distância percorrida entre os clientes selecionados a partir da sua posição.
+      </div>
+
+      <div style="display:flex; gap:8px; align-items:center; margin-bottom:12px; background:#070d19; padding:10px; border-radius:8px; border:1px solid #1e293b;">
+        <label style="font-size:11px; color:#cbd5e1; white-space:nowrap;">Qtd de Paradas:</label>
+        <select id="sel-route-stops" onchange="calculateOptimizedRoute()" style="background:#121929; color:#fff; border:1px solid var(--border-color); padding:6px; border-radius:6px; font-size:12px;">
+          <option value="5">5 Clientes</option>
+          <option value="10" selected>10 Clientes</option>
+          <option value="15">15 Clientes</option>
+          <option value="20">20 Clientes</option>
+        </select>
+        <button onclick="calculateOptimizedRoute()" style="background:#10b981; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-size:11px; font-weight:bold; cursor:pointer; margin-left:auto;">Recalcular</button>
+      </div>
+
+      <div id="route-opt-results"></div>
+    </div>
+  </div>
+
+  <!-- MODAL GUIA DE USO E INSTRUÇÕES DE INSTALAÇÃO DO APP -->
+  <div id="modal-help-guide" class="modal-sheet">
+    <div class="sheet-content" style="max-height:90vh; border: 2px solid #38bdf8; box-shadow: 0 0 30px rgba(56,189,248,0.3);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid #1e293b; padding-bottom:10px;">
+        <h3 style="font-size:15px; color:#38bdf8; display:flex; align-items:center; gap:6px;">
+          <span>📖</span> <span>Guia Completo de Uso & Funcionalidades</span>
+        </h3>
+        <button onclick="closeHelpGuideModal()" style="background:none; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;">✕</button>
+      </div>
+
+      <!-- SEÇÃO 1: INSTALAR COMO APP SEM BARRA DO NAVEGADOR -->
+      <div style="background:linear-gradient(135deg, rgba(37,99,235,0.25), rgba(139,92,246,0.25)); border:1px solid #3b82f6; border-radius:12px; padding:14px; margin-bottom:16px;">
+        <h4 style="color:#60a5fa; font-size:13px; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+          <span>📲</span> <span>Como Abrir Como Aplicativo Nativo (Sem Nome do Site/URL)</span>
+        </h4>
+        <p style="font-size:11px; color:#cbd5e1; line-height:1.5; margin-bottom:8px;">
+          Para ocultar a barra de endereços do Chrome/Safari e usar em tela cheia como aplicativo oficial no seu celular:
+        </p>
+        <div style="font-size:11px; color:#fff; background:#070d19; padding:10px; border-radius:8px; border:1px solid #1e293b; line-height:1.6;">
+          <b>🤖 Android (Google Chrome):</b><br/>
+          1. Toque nos <b>3 pontinhos (⋮)</b> no canto superior direito do Chrome.<br/>
+          2. Selecione <b>"Adicionar à Tela Inicial"</b> ou <b>"Instalar Aplicativo"</b>.<br/>
+          3. Abra o novo ícone criado na tela inicial do celular — ele abrirá em <b>TELA CHEIA sem a URL</b>!<br/><br/>
+          <b>🍏 iPhone (Apple Safari):</b><br/>
+          1. Toque no botão de <b>Compartilhar (quadrado com seta para cima)</b>.<br/>
+          2. Role e selecione <b>"Adicionar à Tela de Início"</b>.<br/>
+          3. O app abrirá 100% nativo em tela cheia!
+        </div>
+      </div>
+
+      <!-- SEÇÃO 2: GUIA DAS ABAS E FUNCIONALIDADES -->
+      <div style="display:flex; flex-direction:column; gap:10px;">
+
+        <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:12px;">
+          <b style="color:var(--accent-blue); font-size:12px;">🗺️ 1. Aba Mapa & Filtros Rápidos</b>
+          <div style="font-size:11px; color:#cbd5e1; margin-top:4px; line-height:1.4;">
+            • <b>Filtros por Raio</b> (500m até 25km ou Todos), Filial, CNAE Alvo e Status.<br/>
+            • <b>🔥 Heatmap (ON/OFF)</b>: Visualize a mancha de calor e densidade de clientes na região.<br/>
+            • <b>🌟 Ver Camadas</b>: Alterne entre Clientes da Base, Prospects Google ou Ambos.<br/>
+            • <b>🎯 Botão Posição (Canto Inferior)</b>: Centraliza o mapa instantaneamente no seu GPS.
+          </div>
+        </div>
+
+        <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:12px;">
+          <b style="color:#a78bfa; font-size:12px;">📋 2. Aba Próximos & Roteirização</b>
+          <div style="font-size:11px; color:#cbd5e1; margin-top:4px; line-height:1.4;">
+            • Lista ordenada dos clientes mais próximos da sua localização.<br/>
+            • Botões de ação rápida em cada cliente: <b>Ficha Completa</b>, <b>Navegar via Waze</b>, <b>Abrir Google Maps</b>, <b>WhatsApp</b> e <b>Registrar Visita</b>.<br/>
+            • <b>🧭 Rota Otimizada (TSP)</b>: Selecione 5, 10 ou 20 clientes e monte a menor rota para rodar no Google Maps.
+          </div>
+        </div>
+
+        <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:12px;">
+          <b style="color:var(--accent-pink); font-size:12px;">🎯 3. Aba Radar 360°</b>
+          <div style="font-size:11px; color:#cbd5e1; margin-top:4px; line-height:1.4;">
+            • Radar militar com varredura visual em tempo real.<br/>
+            • <b>Blips Verdes</b> = Clientes Alvo | <b>Blips Azuis</b> = Outros Clientes | <b>Blips Rosas</b> = Prospects Google.<br/>
+            • <b>Toque em qualquer blip no radar</b> para abrir a Ficha e opções de atendimento presencial!
+          </div>
+        </div>
+
+        <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:12px;">
+          <b style="color:#38bdf8; font-size:12px;">📊 4. Aba Dashboard Gerencial</b>
+          <div style="font-size:11px; color:#cbd5e1; margin-top:4px; line-height:1.4;">
+            • Métricas e KPIs da operação comercial em tempo real.<br/>
+            • Gráficos de Clientes por Filial, Top 10 Cidades, Histórico de Visitas e Ranking.<br/>
+            • <b>Alertas Inteligentes</b> (prospects não salvos, proximidade &lt;300m, clientes sem compra).<br/>
+            • <b>Cobertura por Cidade</b> (% de atendimento em cada município).
+          </div>
+        </div>
+
+        <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:12px;">
+          <b style="color:var(--accent-green); font-size:12px;">🌐 5. Aba Prospecção Google / OSM</b>
+          <div style="font-size:11px; color:#cbd5e1; margin-top:4px; line-height:1.4;">
+            • <b>Varredura Automática de 10 Segmentos Alvo</b> (Supermercados, Padarias, Açougues, Bebidas, etc.).<br/>
+            • <b>Cruzamento Inteligente com a Base (5 km)</b>: Identifica se o local retornado pelo Google já é seu cliente ou se é um Novo Prospect!
+          </div>
+        </div>
+
+        <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:12px;">
+          <b style="color:var(--accent-orange); font-size:12px;">📷 6. Fotos GPS & Registros de Visita</b>
+          <div style="font-size:11px; color:#cbd5e1; margin-top:4px; line-height:1.4;">
+            • Capture fotos de fachada e marque o local exato com pino no GPS.<br/>
+            • Registre o resultado da visita com histórico salvo no banco local <b>IndexedDB</b>.
+          </div>
+        </div>
+
+      </div>
+
+      <div style="margin-top:16px; text-align:center;">
+        <button onclick="closeHelpGuideModal()" style="background:var(--accent-blue); color:#fff; border:none; padding:12px 20px; border-radius:8px; font-weight:bold; cursor:pointer; width:100%;">Entendi, Fechar Guia</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAVIGATION -->
+  <nav id="bottom-nav" style="display:none;">
+    <div class="nav-item active" data-tab="view-map" id="nav-mod-map">
+      <span class="icon">🗺️</span><span>Mapa</span>
+    </div>
+    <div class="nav-item" data-tab="view-list" id="nav-mod-list">
+      <span class="icon">📋</span><span>Próximos</span>
+    </div>
+    <div class="nav-item" data-tab="view-radar" id="nav-mod-radar">
+      <span class="icon">🎯</span><span>Radar</span>
+    </div>
+    <div class="nav-item" data-tab="view-dashboard" id="nav-mod-dashboard">
+      <span class="icon">📊</span><span>Dashboard</span>
+    </div>
+    <div class="nav-item" data-tab="view-photos" id="nav-mod-photos">
+      <span class="icon">📷</span><span>Fotos</span>
+    </div>
+    <div class="nav-item" data-tab="view-visitas" id="nav-mod-visitas">
+      <span class="icon">📝</span><span>Visitas</span>
+    </div>
+    <div class="nav-item" data-tab="view-google" id="nav-mod-google">
+      <span class="icon">🌐</span><span>Google</span>
+    </div>
+    <div class="nav-item" data-tab="view-admin" id="nav-mod-admin">
+      <span class="icon">👥</span><span>Gestão</span>
+    </div>
+  </nav>
+
   <!-- JS EXTERNO -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="city_coords.js"></script>
   <script src="clientes_part1.js"></script>
   <script src="clientes_part2.js"></script>
   <script src="clientes_part3.js"></script>
@@ -1143,8 +1767,8 @@
           for (let reg of regs) {
             reg.unregister();
           }
-          navigator.serviceWorker.register('sw.js?v=100').then(reg => {
-            console.log('[PWA] ServiceWorker v100 registrado:', reg);
+          navigator.serviceWorker.register('sw.js?v=105').then(reg => {
+            console.log('[PWA] ServiceWorker v105 Offline Storage registrado:', reg);
             reg.update();
           });
         });
@@ -1185,17 +1809,18 @@
       charts: {}
     };
 
-    // ── INDEXEDDB PERSISTÊNCIA ROBUSTA ──
+    // ── INDEXEDDB PERSISTÊNCIA ROBUSTA (OFFLINE COMPLETO) ──
     const IDB = {
       db: null,
       async init() {
         return new Promise((resolve) => {
           if (!('indexedDB' in window)) return resolve();
-          const req = indexedDB.open('MapaVisitasDB', 1);
+          const req = indexedDB.open('MapaVisitasDB', 2);
           req.onupgradeneeded = (e) => {
             const db = e.target.result;
             if (!db.objectStoreNames.contains('photoPins')) db.createObjectStore('photoPins', { keyPath: 'id' });
             if (!db.objectStoreNames.contains('visitLogs')) db.createObjectStore('visitLogs', { keyPath: 'id' });
+            if (!db.objectStoreNames.contains('clients')) db.createObjectStore('clients', { keyPath: 'id' });
           };
           req.onsuccess = (e) => { this.db = e.target.result; resolve(); };
           req.onerror = () => resolve();
@@ -1213,7 +1838,7 @@
         });
       },
       async saveStore(name, items) {
-        if (!this.db) return;
+        if (!this.db || !items || items.length === 0) return;
         try {
           const tx = this.db.transaction(name, 'readwrite');
           const store = tx.objectStore(name);
@@ -1233,6 +1858,21 @@
       IDB.saveStore('visitLogs', STATE.visitLogs);
     }
 
+    function updateOnlineStatus() {
+      const statusEl = document.getElementById('lbl-online-status');
+      if (!statusEl) return;
+      if (navigator.onLine) {
+        statusEl.innerHTML = '<span style="color:#10b981;">🟢 ONLINE</span>';
+        statusEl.title = "Conectado ao servidor e sincronizado";
+      } else {
+        statusEl.innerHTML = '<span style="color:#f59e0b;">📡 OFFLINE</span>';
+        statusEl.title = "Modo estático local ativo com 48.182 clientes";
+      }
+    }
+
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+
     const CIDADES_PARANA = [
       { name: "Campo Grande - MS (Centro)", lat: -20.4697, lng: -54.6201 },
       { name: "Dourados - MS", lat: -22.2231, lng: -54.8069 },
@@ -1242,11 +1882,14 @@
       { name: "Foz do Iguaçu - PR", lat: -25.5163, lng: -54.5854 },
       { name: "Maringá - PR (Centro)", lat: -23.4205, lng: -51.9333 },
       { name: "Londrina - PR (Centro)", lat: -23.3103, lng: -51.1628 },
-      { name: "Curitiba - PR (Centro)", lat: -25.4284, lng: -49.2733 }
+      { name: "Curitiba - PR (Centro)", lat: -25.4284, lng: -49.2733 },
+      { name: "Rondonópolis - MT (Centro)", lat: -16.4708, lng: -54.6356 },
+      { name: "Cuiabá - MT (Centro)", lat: -15.6010, lng: -56.0974 }
     ];
 
     document.addEventListener('DOMContentLoaded', () => {
       initApp();
+      updateOnlineStatus();
     });
 
     async function initApp() {
@@ -1257,6 +1900,15 @@
         localStorage.removeItem('MAPA_LOGGED_USER');
         sessionStorage.removeItem('MAPA_LOGGED_USER');
       } catch(e) {}
+
+      // Tenta recuperar clientes do IndexedDB caso esteja offline ou sem window.CLIENTES_PRELOAD
+      if (!window.CLIENTES_PRELOAD || !Array.isArray(window.CLIENTES_PRELOAD) || window.CLIENTES_PRELOAD.length === 0) {
+        const idbClients = await IDB.getStore('clients');
+        if (idbClients && idbClients.length > 0) {
+          window.CLIENTES_PRELOAD = idbClients;
+          console.log('[IDB] Clientes recuperados offline do IndexedDB:', idbClients.length);
+        }
+      }
 
       // Carrega lista de usuários salvos
       try {
@@ -1357,8 +2009,16 @@
       }
     }
 
-    function startLoadingData() {
+    async function startLoadingData() {
       const lblTitle = document.getElementById('lbl-load-title');
+
+      if (!window.CLIENTES_PRELOAD || !Array.isArray(window.CLIENTES_PRELOAD) || window.CLIENTES_PRELOAD.length === 0) {
+        const idbClients = await IDB.getStore('clients');
+        if (idbClients && idbClients.length > 0) {
+          window.CLIENTES_PRELOAD = idbClients;
+        }
+      }
+
       if (window.CLIENTES_PRELOAD && Array.isArray(window.CLIENTES_PRELOAD)) {
         STATE.rawClients = window.CLIENTES_PRELOAD;
         onDataReady();
@@ -1369,6 +2029,50 @@
     }
 
     function onDataReady() {
+      // 1. Persiste a base no IndexedDB para acesso 100% offline
+      if (STATE.rawClients && STATE.rawClients.length > 0) {
+        IDB.saveStore('clients', STATE.rawClients);
+      }
+
+      // 2. Resolução de GPS Faltante via Centroide da Cidade (Ex: Rondonópolis - MT)
+      if (window.CITY_COORDS) {
+        STATE.rawClients.forEach(c => {
+          if (c.lt === null || c.lg === null) {
+            const cityKey = `${(c.m||'').trim().toUpperCase()}-${(c.u||'').trim().toUpperCase()}`;
+            if (window.CITY_COORDS[cityKey]) {
+              const hash = (c.id * 9301 + 49297) % 233280;
+              const rndLat = ((hash % 1000) / 100000) - 0.005;
+              const rndLng = (((hash * 7) % 1000) / 100000) - 0.005;
+              c.lt = window.CITY_COORDS[cityKey][0] + rndLat;
+              c.lg = window.CITY_COORDS[cityKey][1] + rndLng;
+              c._gps_estimated = true;
+            }
+          }
+        });
+      }
+
+      // 3. Mapeamento de CNPJs em Múltiplas Filiais (MULTI-FILIAL)
+      const cnpjMap = {};
+      STATE.rawClients.forEach(c => {
+        if (c.j) {
+          const clean = c.j.replace(/\D/g, '');
+          if (clean) {
+            if (!cnpjMap[clean]) cnpjMap[clean] = new Set();
+            if (c.f) cnpjMap[clean].add(c.f);
+          }
+        }
+      });
+
+      STATE.rawClients.forEach(c => {
+        if (c.j) {
+          const clean = c.j.replace(/\D/g, '');
+          if (clean && cnpjMap[clean] && cnpjMap[clean].size > 1) {
+            c.isMultiFilial = true;
+            c.filiaisList = Array.from(cnpjMap[clean]).sort();
+          }
+        }
+      });
+
       document.getElementById('loading-overlay').style.display = 'none';
       initMap();
       populateFiliaisDropdown();
@@ -1400,7 +2104,7 @@
       STATE.rawClients.forEach(c => { if (c.f) set.add(c.f); });
       const sel = document.getElementById('sel-filial');
       const uwrap = document.getElementById('uadmin-filial-val');
-      sel.innerHTML = '<option value="">Filial: Todas</option>';
+      sel.innerHTML = '<option value="">Filial: Todas</option><option value="MULTI">🟣 MULTI-FILIAL (+1 Filial)</option>';
       uwrap.innerHTML = '';
       Array.from(set).sort().forEach(f => {
         sel.appendChild(new Option(`Filial: ${f}`, f));
@@ -1955,7 +2659,10 @@
         const c = STATE.rawClients[i];
 
         if (status && c.s !== status) continue;
-        if (filial && c.f !== filial) continue;
+        if (filial === 'MULTI') {
+          if (!c.isMultiFilial) continue;
+        } else if (filial && c.f !== filial) continue;
+        
         if (cnaeFilter === 'TARGET' && !c.target) continue;
 
         if (term) {
@@ -2023,19 +2730,23 @@
       const mapMode = document.getElementById('sel-map-mode') ? document.getElementById('sel-map-mode').value : 'ALL';
       const markers = [];
 
-      // 1. Clientes da Base (Pinos Verdes / Azuis)
+      // 1. Clientes da Base (Pinos Verdes / Azuis / Roxos Multi-Filial)
       if (mapMode === 'ALL' || mapMode === 'BASE') {
         const list = STATE.activeClients.slice(0, 800);
         list.forEach(c => {
           if (c.lt === null || c.lg === null) return;
 
-          const pinColor = c.target ? '#10b981' : '#3b82f6';
-          const marker = L.circleMarker([c.lt, c.lg], { radius: 6.5, fillColor: pinColor, color: '#ffffff', weight: 1.5, fillOpacity: 0.85 });
+          const isMulti = c.isMultiFilial;
+          const pinColor = isMulti ? '#8b5cf6' : (c.target ? '#10b981' : '#3b82f6');
+          const borderWeight = isMulti ? 3.0 : 1.5;
+          const borderColor = isMulti ? '#ec4899' : '#ffffff';
+          const marker = L.circleMarker([c.lt, c.lg], { radius: 7.5, fillColor: pinColor, color: borderColor, weight: borderWeight, fillOpacity: 0.9 });
 
           const popHtml = `
-            <div style="font-size:12px; color:#0f172a; min-width:210px;">
+            <div style="font-size:12px; color:#0f172a; min-width:220px;">
               <b style="font-size:13px; color:#1e293b;">${c.c}</b><br/>
               <span style="color:#64748b;">CNPJ: ${c.j} · Filial: ${c.f}</span><br/>
+              ${isMulti ? `<div style="background:linear-gradient(135deg, #8b5cf6, #ec4899); color:#fff; font-size:10px; font-weight:bold; padding:2px 6px; border-radius:4px; margin-top:3px; text-align:center;">🟣 MULTI-FILIAL (${c.filiaisList ? c.filiaisList.join(', ') : ''})</div>` : ''}
               <div style="margin-top:4px;">${c.e ? c.e + ' - ' : ''}${c.m}/${c.u}</div>
               ${c.cnae ? `<div style="font-size:10px; color:#059669; margin-top:2px;">🎯 ${c.cnae.slice(0,40)}</div>` : ''}
               ${c.distKm < 9999 ? `<div style="margin-top:4px; font-weight:bold; color:#3b82f6;">📏 Distância: ${formatDistance(c.distKm)} (${c.bearing.dir})</div>` : ''}
@@ -2103,16 +2814,18 @@
       list.forEach(c => {
         const distStr = c.distKm < 9999 ? `${formatDistance(c.distKm)} (${c.bearing.dir})` : 'Sem GPS';
         const targetBadge = c.target ? `<span style="background:rgba(16,185,129,0.2); color:#34d399; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold;">🎯 ALVO</span>` : '';
-        
+        const multiBadge = c.isMultiFilial ? `<span style="background:linear-gradient(135deg, #8b5cf6, #ec4899); color:#fff; font-size:9px; font-weight:bold; padding:2px 6px; border-radius:4px; margin-left:4px;" title="Atendido por múltiplas filiais">🟣 MULTI-FILIAL (${c.filiaisList ? c.filiaisList.join(', ') : ''})</span>` : '';
+        const estimatedBadge = c._gps_estimated ? `<span style="background:rgba(245,158,11,0.2); color:#f59e0b; padding:2px 5px; border-radius:4px; font-size:9px; font-weight:bold; margin-left:4px;" title="Localização aproximada via centro da cidade">🏙️ Cidade</span>` : '';
+
         const cleanTel = c.t ? c.t.replace(/\D/g, '') : '';
         const gmapsUrl = (c.lt && c.lg) ? `https://www.google.com/maps/dir/?api=1&destination=${c.lt},${c.lg}` : '#';
         const wazeUrl = (c.lt && c.lg) ? `https://waze.com/ul?ll=${c.lt},${c.lg}&navigate=yes` : '#';
 
         html += `
-          <div class="client-card">
+          <div class="client-card" ${c.isMultiFilial ? 'style="border-color:#8b5cf6; box-shadow:0 0 10px rgba(139,92,246,0.2);"' : ''}>
             <div class="card-head">
               <div>
-                <div class="client-title">${c.c} ${targetBadge}</div>
+                <div class="client-title">${c.c} ${targetBadge} ${multiBadge} ${estimatedBadge}</div>
                 <div class="client-sub">CNPJ: ${c.j || 'N/A'} · Filial: ${c.f}</div>
               </div>
               <span class="dist-badge">📍 ${distStr}</span>
@@ -2124,10 +2837,10 @@
             <div class="card-actions">
               <button onclick="openDossierModal('${c.id}')" class="act-btn dossier">📄 Ver Tudo</button>
               <a href="${gmapsUrl}" target="_blank" class="act-btn maps">🗺️ GPS Maps</a>
-              ${(c.lt && c.lg) ? `<a href="${wazeUrl}" target="_blank" class="act-btn waze">🧭 Waze</a>` : ''}
-              ${c.t ? `<a href="tel:${c.t}" class="act-btn call">📞 Ligar</a>` : ''}
-              ${cleanTel ? `<a href="https://wa.me/55${cleanTel}" target="_blank" class="act-btn wa">💬 Whats</a>` : ''}
-              <button onclick="openVisitModal('${c.id}')" class="act-btn log">📝 Visita</button>
+              <a href="${wazeUrl}" target="_blank" class="act-btn waze" style="background:#0284c7; color:#fff;">🧭 Waze</a>
+              ${cleanTel ? `<a href="tel:${cleanTel}" class="act-btn phone">📞 Ligar</a>` : ''}
+              ${cleanTel ? `<a href="https://wa.me/55${cleanTel}" target="_blank" class="act-btn whats">💬 Whats</a>` : ''}
+              <button onclick="openVisitModal('${c.id}')" class="act-btn visit">📝 Visita</button>
             </div>
           </div>
         `;
