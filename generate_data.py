@@ -3,6 +3,47 @@ import json
 import os
 import sys
 
+def parse_coord(val, is_lat=True):
+    if pd.isna(val) or val is None or val == 0:
+        return None
+    
+    val_str = str(val).strip()
+    if not val_str or val_str.lower() in ['nan', 'none', 'null']:
+        return None
+    
+    # Notação científica do Excel (ex: -1.64379318947022e+16)
+    if 'e' in val_str.lower():
+        try:
+            fval = float(val_str)
+            abs_max = 35.0 if is_lat else 75.0
+            min_val = -35.0 if is_lat else -75.0
+            max_val = 6.0 if is_lat else -30.0
+            while abs(fval) > abs_max:
+                fval /= 10.0
+            if min_val <= fval <= max_val:
+                return round(fval, 6)
+        except:
+            pass
+
+    sign = -1.0 if '-' in val_str else 1.0
+    digits = ''.join(c for c in val_str if c.isdigit())
+    if not digits:
+        return None
+    
+    # Formatação com múltiplos pontos/máscara (ex: 16446164 -> 16.446164 ou 54651742 -> 54.651742)
+    if len(digits) >= 2:
+        val_float = sign * float(digits[:2] + '.' + digits[2:])
+        min_val = -35.0 if is_lat else -75.0
+        max_val = 6.0 if is_lat else -30.0
+        if min_val <= val_float <= max_val:
+            return round(val_float, 6)
+            
+        val_float_1deg = sign * float(digits[:1] + '.' + digits[1:])
+        if min_val <= val_float_1deg <= max_val:
+            return round(val_float_1deg, 6)
+            
+    return None
+
 def main():
     excel_path = os.path.join(os.path.dirname(__file__), 'clientes_rf_2026-07-30.xlsx')
     if not os.path.exists(excel_path):
@@ -13,19 +54,9 @@ def main():
     df = pd.read_excel(excel_path)
     print(f"Total de registros lidos: {len(df)}")
     
-    # Tratamento de Coordenadas
-    def fix_lat_lon(series):
-        s = pd.to_numeric(series.astype(str).str.strip().str.replace(',', '.'), errors='coerce')
-        mask = s.notna() & (s != 0)
-        vals = s[mask].copy()
-        while (vals.abs() > 180).any():
-            over = vals.abs() > 180
-            vals[over] = vals[over] / 10.0
-        s[mask] = vals.round(6)
-        return s
-
-    df['lat_clean'] = fix_lat_lon(df['lat'])
-    df['lon_clean'] = fix_lat_lon(df['lon'])
+    print("Processando parser robusto de latitude e longitude...")
+    df['lat_clean'] = df['lat'].apply(lambda x: parse_coord(x, is_lat=True))
+    df['lon_clean'] = df['lon'].apply(lambda x: parse_coord(x, is_lat=False))
 
     is_br_lat = (df['lat_clean'] >= -35.0) & (df['lat_clean'] <= 6.0)
     is_br_lon = (df['lon_clean'] >= -75.0) & (df['lon_clean'] <= -30.0)

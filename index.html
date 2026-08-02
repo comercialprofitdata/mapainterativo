@@ -2666,12 +2666,13 @@
         if (cnaeFilter === 'TARGET' && !c.target) continue;
 
         if (term) {
+          const normTerm = term.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
           const match = 
-            (c.c && c.c.toLowerCase().includes(term)) ||
-            (c.r && c.r.toLowerCase().includes(term)) ||
+            (c.c && c.c.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(normTerm)) ||
+            (c.r && c.r.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(normTerm)) ||
             (c.j && c.j.includes(term)) ||
-            (c.m && c.m.toLowerCase().includes(term)) ||
-            (c.cnae && c.cnae.toLowerCase().includes(term));
+            (c.m && c.m.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(normTerm)) ||
+            (c.cnae && c.cnae.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(normTerm));
           if (!match) continue;
         }
 
