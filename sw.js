@@ -1,8 +1,7 @@
-const CACHE_NAME = 'visitas-v105-offline-full';
+const CACHE_NAME = 'visitas-pwa-v106-offline';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
-  './city_coords.js',
   './clientes_part1.js',
   './clientes_part2.js',
   './clientes_part3.js',
@@ -18,16 +17,17 @@ const ASSETS_TO_CACHE = [
 ];
 
 self.addEventListener('install', (event) => {
-  console.log('[ServiceWorker] Installing v105 Offline Storage');
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE).catch(err => console.warn('[ServiceWorker] Pre-cache:', err));
-    }).then(() => self.skipWaiting())
+      return Promise.allSettled(
+        ASSETS_TO_CACHE.map(url => cache.add(url).catch(err => console.warn('[SW] Cache item warn:', url, err)))
+      );
+    })
   );
 });
 
 self.addEventListener('activate', (event) => {
-  console.log('[ServiceWorker] Activating v105 Offline Storage');
   event.waitUntil(
     caches.keys().then((keyList) => {
       return Promise.all(
@@ -41,20 +41,31 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Network-First with Cache Fallback for instant offline usage
+// Cache-First with Background Stale-While-Revalidate
 self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
+
   event.respondWith(
-    fetch(event.request).then(networkResponse => {
-      if (networkResponse && networkResponse.status === 200) {
-        const copy = networkResponse.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+    caches.match(event.request).then((cachedResponse) => {
+      if (cachedResponse) {
+        // Tenta atualizar em background se online
+        fetch(event.request).then(networkResponse => {
+          if (networkResponse && networkResponse.status === 200) {
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, networkResponse));
+          }
+        }).catch(() => {});
+        return cachedResponse;
       }
-      return networkResponse;
-    }).catch(() => {
-      return caches.match(event.request).then(response => {
-        if (response) return response;
+
+      return fetch(event.request).then(networkResponse => {
+        if (networkResponse && networkResponse.status === 200) {
+          const copy = networkResponse.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+        }
+        return networkResponse;
+      }).catch(() => {
         if (event.request.mode === 'navigate') {
-          return caches.match('./index.html');
+          return caches.match('./index.html') || caches.match('./');
         }
       });
     })

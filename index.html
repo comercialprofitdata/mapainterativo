@@ -531,8 +531,8 @@
     </select>
 
     <select id="sel-cnae" class="select-tb" style="color: var(--accent-green);">
-      <option value="">CNAE: Todos</option>
-      <option value="TARGET" selected>🎯 Alvo (Varejo/Food)</option>
+      <option value="ALL" selected>CNAE: Todos os Ramos (48.182)</option>
+      <option value="TARGET">🎯 Apenas Alvo (Varejo/Food)</option>
     </select>
 
     <select id="sel-filial" class="select-tb">
@@ -568,9 +568,22 @@
       </div>
     </section>
 
-    <!-- VIEW 3: RADAR FUTURISTA -->
+    <!-- VIEW 3: RADAR FUTURISTA & BÚSSOLA -->
     <section id="view-radar" class="view-panel">
       <div id="radar-view-container">
+        <!-- Explicação do Radar -->
+        <div style="background:rgba(59,130,246,0.1); border:1px solid rgba(59,130,246,0.3); border-radius:10px; padding:8px 12px; margin-bottom:8px; width:100%; max-width:440px; font-size:11px; color:#cbd5e1; text-align:center;">
+          🧭 <b>Radar 360° & Bússola Direcional em Tempo Real:</b><br/>
+          Indica a distância e direção exata (N, NE, L, SE, S, SO, O, NO) de quem está ao redor do seu veículo. Toque nos pontos do radar para ações rápidas!
+        </div>
+
+        <!-- Filtro do Radar: Todos, Clientes Base ou Prospects Google -->
+        <div style="display:flex; gap:6px; margin-bottom:10px; width:100%; max-width:440px; justify-content:center;">
+          <button id="btn-radar-filter-all" class="btn-tb active" onclick="setRadarFilter('ALL')" style="font-size:10px; font-weight:bold; padding:4px 10px; border-radius:6px; background:#3b82f6; color:#fff; border:none; cursor:pointer;">🌟 Todos</button>
+          <button id="btn-radar-filter-base" class="btn-tb" onclick="setRadarFilter('BASE')" style="font-size:10px; font-weight:bold; padding:4px 10px; border-radius:6px; background:#1e293b; color:#94a3b8; border:1px solid #334155; cursor:pointer;">🏢 Só Clientes Base</button>
+          <button id="btn-radar-filter-google" class="btn-tb" onclick="setRadarFilter('GOOGLE')" style="font-size:10px; font-weight:bold; padding:4px 10px; border-radius:6px; background:#1e293b; color:#94a3b8; border:1px solid #334155; cursor:pointer;">🔥 Só Prospects Google</button>
+        </div>
+
         <div class="radar-canvas-wrap">
           <canvas id="radar-canvas" width="320" height="320"></canvas>
           <div class="radar-compass-n">N</div>
@@ -587,7 +600,7 @@
             </div>
             <div class="radar-stat-box">
               <div class="radar-stat-val" style="color:var(--accent-green);" id="hud-stat-target">0</div>
-              <div class="radar-stat-lbl">CNAE Alvo</div>
+              <div class="radar-stat-lbl">Alvo</div>
             </div>
             <div class="radar-stat-box">
               <div class="radar-stat-val" style="color:var(--accent-pink);" id="hud-stat-closest">0 m</div>
@@ -1796,13 +1809,13 @@
       userMarker: null,
       activeRadiusKm: 1.0,
       activeFilial: "",
-      activeStatus: "ATIVO",
-      activeCnae: "TARGET",
+      activeCnae: "ALL",
       searchTerm: "",
       radarAnimId: null,
       radarSweepAngle: 0,
       googleProspects: [],
       showGoogleOnMap: true,
+      radarFilter: "ALL",
       renderedBlips: [],
       heatLayer: null,
       showHeatmap: false,
@@ -2933,6 +2946,83 @@
       ctx.fill();
       ctx.restore();
 
+    function setRadarFilter(mode) {
+      STATE.radarFilter = mode;
+      ['all', 'base', 'google'].forEach(m => {
+        const btn = document.getElementById(`btn-radar-filter-${m}`);
+        if (btn) {
+          if (m === mode.toLowerCase()) {
+            btn.classList.add('active');
+            btn.style.background = '#3b82f6';
+            btn.style.color = '#fff';
+            btn.style.border = 'none';
+          } else {
+            btn.classList.remove('active');
+            btn.style.background = '#1e293b';
+            btn.style.color = '#94a3b8';
+            btn.style.border = '1px solid #334155';
+          }
+        }
+      });
+      drawRadarCanvas();
+      updateRadarHUD();
+    }
+
+    function drawRadarCanvas() {
+      const canvas = document.getElementById('radar-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width, h = canvas.height;
+      const cx = w / 2, cy = h / 2;
+      const maxR = cx - 22;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Fundo militar / sci-fi
+      const bgGrad = ctx.createRadialGradient(cx, cy, 5, cx, cy, maxR);
+      bgGrad.addColorStop(0, '#09152b');
+      bgGrad.addColorStop(1, '#020612');
+      ctx.fillStyle = bgGrad;
+      ctx.beginPath(); ctx.arc(cx, cy, maxR, 0, Math.PI * 2); ctx.fill();
+
+      // Círculos concêntricos com brilho
+      ctx.strokeStyle = 'rgba(59, 130, 246, 0.25)';
+      ctx.lineWidth = 1;
+      [0.25, 0.5, 0.75, 1.0].forEach(rPct => {
+        ctx.beginPath(); ctx.arc(cx, cy, maxR * rPct, 0, Math.PI * 2); ctx.stroke();
+      });
+
+      // Linhas cruzadas de quadrante
+      ctx.strokeStyle = 'rgba(59, 130, 246, 0.18)';
+      ctx.beginPath();
+      ctx.moveTo(cx, cy - maxR); ctx.lineTo(cx, cy + maxR);
+      ctx.moveTo(cx - maxR, cy); ctx.lineTo(cx + maxR, cy);
+      ctx.stroke();
+
+      // Desenha letras dos pontos cardeais na bússola
+      ctx.fillStyle = '#60a5fa';
+      ctx.font = 'bold 10px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('N', cx, cy - maxR + 12);
+      ctx.fillText('S', cx, cy + maxR - 12);
+      ctx.fillText('L', cx + maxR - 12, cy);
+      ctx.fillText('O', cx - maxR + 12, cy);
+
+      // Varredura de Scanner (Feixe Rotativo)
+      const sweepAngle = STATE.radarSweepAngle;
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, maxR, sweepAngle - 0.45, sweepAngle);
+      ctx.closePath();
+      const sweepGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, maxR);
+      sweepGrad.addColorStop(0, 'rgba(59, 130, 246, 0.35)');
+      sweepGrad.addColorStop(1, 'rgba(16, 185, 129, 0.05)');
+      ctx.fillStyle = sweepGrad;
+      ctx.fill();
+      ctx.restore();
+
       // Linha guia do feixe
       ctx.strokeStyle = 'rgba(59, 130, 246, 0.8)';
       ctx.lineWidth = 1.5;
@@ -2949,36 +3039,37 @@
 
       STATE.renderedBlips = [];
 
-      // Posição de Clientes
       const userLat = STATE.userPos ? STATE.userPos.lat : null;
       const userLng = STATE.userPos ? STATE.userPos.lng : null;
       if (userLat === null) return;
 
       const radiusKm = STATE.activeRadiusKm === 9999 ? 25 : STATE.activeRadiusKm;
-      const list = STATE.activeClients.slice(0, 80);
+      const mode = STATE.radarFilter || 'ALL';
 
-      list.forEach(c => {
-        if (c.lt === null || c.lg === null) return;
-        const d = c.distKm; if (d > radiusKm) return;
+      // 1. Posição de Clientes da Base
+      if (mode === 'ALL' || mode === 'BASE') {
+        const list = STATE.activeClients.slice(0, 80);
+        list.forEach(c => {
+          if (c.lt === null || c.lg === null) return;
+          const d = c.distKm; if (d > radiusKm) return;
 
-        const angle = Math.atan2((c.lg - userLng), (c.lt - userLat));
-        const distPct = Math.min(1.0, d / radiusKm);
-        const px = cx + Math.sin(angle) * (maxR * distPct);
-        const py = cy - Math.cos(angle) * (maxR * distPct);
+          const angle = Math.atan2((c.lg - userLng), (c.lt - userLat));
+          const distPct = Math.min(1.0, d / radiusKm);
+          const px = cx + Math.sin(angle) * (maxR * distPct);
+          const py = cy - Math.cos(angle) * (maxR * distPct);
 
-        // Salva Blip para clique interativo no Canvas
-        STATE.renderedBlips.push({ px, py, data: c, type: 'BASE' });
+          STATE.renderedBlips.push({ px, py, data: c, type: 'BASE' });
 
-        // Desenha Blip no Radar
-        ctx.fillStyle = c.target ? '#10b981' : '#60a5fa';
-        ctx.shadowColor = c.target ? '#10b981' : '#60a5fa';
-        ctx.shadowBlur = 8;
-        ctx.beginPath(); ctx.arc(px, py, c.target ? 4.5 : 3.5, 0, Math.PI * 2); ctx.fill();
-        ctx.shadowBlur = 0;
-      });
+          ctx.fillStyle = c.target ? '#10b981' : '#60a5fa';
+          ctx.shadowColor = c.target ? '#10b981' : '#60a5fa';
+          ctx.shadowBlur = 8;
+          ctx.beginPath(); ctx.arc(px, py, c.target ? 4.5 : 3.5, 0, Math.PI * 2); ctx.fill();
+          ctx.shadowBlur = 0;
+        });
+      }
 
-      // Desenha Prospects do Google em Rosa Neon no Radar
-      if (STATE.showGoogleOnMap && STATE.googleProspects && STATE.googleProspects.length > 0) {
+      // 2. Desenha Prospects do Google em Rosa Neon no Radar
+      if ((mode === 'ALL' || mode === 'GOOGLE') && STATE.googleProspects && STATE.googleProspects.length > 0) {
         STATE.googleProspects.forEach(gp => {
           const d = haversineDistance(userLat, userLng, gp.lat, gp.lng);
           if (d > radiusKm) return;
@@ -2987,7 +3078,6 @@
           const px = cx + Math.sin(angle) * (maxR * distPct);
           const py = cy - Math.cos(angle) * (maxR * distPct);
 
-          // Salva Blip do Google para clique
           STATE.renderedBlips.push({ px, py, data: gp, type: 'GOOGLE' });
 
           ctx.fillStyle = '#ec4899';
@@ -3053,74 +3143,49 @@
 
     function updateRadarHUD() {
       const userLat = STATE.userPos ? STATE.userPos.lat : null;
-      const radiusKm = STATE.activeRadiusKm === 9999 ? 25 : STATE.activeRadiusKm;
-      const list = STATE.activeClients.slice(0, 60);
+      const mode = STATE.radarFilter || 'ALL';
+      const list = (mode === 'GOOGLE') ? [] : STATE.activeClients.slice(0, 60);
       const targetCount = list.filter(x => x.target).length;
-      const googleCount = (STATE.googleProspects || []).length;
+      const googleProspectsList = (mode === 'BASE') ? [] : (STATE.googleProspects || []);
       const closest = list[0];
 
-      document.getElementById('hud-stat-total').innerText = list.length + googleCount;
-      document.getElementById('hud-stat-target').innerText = targetCount;
+      document.getElementById('hud-stat-total').innerText = list.length + googleProspectsList.length;
+      document.getElementById('hud-stat-target').innerText = (mode === 'GOOGLE') ? googleProspectsList.length : targetCount;
       document.getElementById('hud-stat-closest').innerText = closest && closest.distKm < 9999 ? formatDistance(closest.distKm) : '--';
 
       const statusLbl = document.getElementById('radar-lbl-status');
       if (userLat === null) {
         statusLbl.innerText = '⚠️ Ative o GPS ou Selecione uma Cidade para ativar o Radar';
       } else {
-        statusLbl.innerText = `🎯 Radar: ${list.length} Clientes Base + 🔥 ${googleCount} Prospects Google (Toque nos blips do radar!)`;
+        statusLbl.innerText = `🎯 Radar (${mode}): ${list.length} Clientes Base + 🔥 ${googleProspectsList.length} Prospects Google`;
       }
 
-      // Renderiza lista compacta do Radar
       const box = document.getElementById('radar-closest-list');
-      if (list.length === 0 && googleCount === 0) {
-        box.innerHTML = `<div style="text-align:center; color:var(--text-muted); font-size:12px;">Nenhum cliente ou prospect detectado no raio do radar.</div>`;
+      if (list.length === 0 && googleProspectsList.length === 0) {
+        box.innerHTML = `<div style="text-align:center; color:var(--text-muted); font-size:12px;">Nenhum cliente ou prospect detectado com o filtro atual do radar.</div>`;
         return;
       }
 
-      let html = '<div style="font-size:11px; font-weight:bold; color:#cbd5e1; margin-bottom:6px;">📍 Alvos no Raio do Radar (Toque para abrir ações):</div>';
+      let html = '';
 
-      // Clientes Base
-      list.slice(0, 12).forEach(c => {
-        const cleanTel = c.t ? c.t.replace(/\D/g, '') : '';
-        const wazeUrl = (c.lt && c.lg) ? `https://waze.com/ul?ll=${c.lt},${c.lg}&navigate=yes` : '#';
-        html += `
-          <div style="background:rgba(18,25,41,0.9); border:1px solid #1e293b; border-radius:8px; padding:8px 10px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
-            <div>
-              <b style="color:#fff; font-size:12px;">${c.c}</b>
-              <div style="font-size:10px; color:var(--text-muted);">${c.m}/${c.u} · CNPJ: ${c.j}</div>
-            </div>
-            <div style="text-align:right;">
-              <span style="font-size:11px; font-weight:bold; color:var(--accent-blue);">📍 ${formatDistance(c.distKm)} (${c.bearing.dir})</span>
-              <div style="margin-top:2px; display:flex; gap:4px; justify-content:flex-end;">
-                <button onclick="openDossierModal('${c.id}')" style="background:#ec4899; color:#fff; border:none; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold; cursor:pointer;">Ficha</button>
-                <button onclick="openVisitModal('${c.id}')" style="background:#8b5cf6; color:#fff; border:none; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold; cursor:pointer;">Visita</button>
-                ${cleanTel ? `<a href="https://wa.me/55${cleanTel}" target="_blank" style="background:#16a34a; color:#fff; border:none; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold; text-decoration:none;">Whats</a>` : ''}
-                <a href="${wazeUrl}" target="_blank" style="background:#0284c7; color:#fff; border:none; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold; text-decoration:none;">Waze</a>
-              </div>
-            </div>
-          </div>
-        `;
-      });
-
-      // Prospects Google no Radar
-      if (STATE.showGoogleOnMap && STATE.googleProspects && STATE.googleProspects.length > 0) {
-        const userLt = STATE.userPos ? STATE.userPos.lat : null;
-        const userLg = STATE.userPos ? STATE.userPos.lng : null;
-        html += '<div style="font-size:11px; font-weight:bold; color:#ec4899; margin-top:8px; margin-bottom:6px;">🔥 Prospects Google no Raio:</div>';
-        STATE.googleProspects.slice(0, 8).forEach(gp => {
-          const gpDist = (userLt !== null) ? haversineDistance(userLt, userLg, gp.lat, gp.lng) : null;
-          const gpDistStr = gpDist !== null ? formatDistance(gpDist) : '';
+      if (mode === 'ALL' || mode === 'BASE') {
+        html += '<div style="font-size:11px; font-weight:bold; color:#cbd5e1; margin-bottom:6px;">📍 Clientes na Base (Toque para abrir ações):</div>';
+        list.slice(0, 12).forEach(c => {
+          const cleanTel = c.t ? c.t.replace(/\D/g, '') : '';
+          const wazeUrl = (c.lt && c.lg) ? `https://waze.com/ul?ll=${c.lt},${c.lg}&navigate=yes` : '#';
           html += `
-            <div style="background:rgba(236,72,153,0.08); border:1px solid rgba(236,72,153,0.3); border-radius:8px; padding:8px 10px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+            <div style="background:rgba(18,25,41,0.9); border:1px solid #1e293b; border-radius:8px; padding:8px 10px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
               <div>
-                <b style="color:#f472b6; font-size:12px;">🌐 ${gp.name}</b>
-                <div style="font-size:10px; color:var(--text-muted);">${gp.addr.length > 40 ? gp.addr.slice(0,40) + '...' : gp.addr}</div>
+                <b style="color:#fff; font-size:12px;">${c.c}</b>
+                <div style="font-size:10px; color:var(--text-muted);">${c.m}/${c.u} · CNPJ: ${c.j}</div>
               </div>
               <div style="text-align:right;">
-                ${gpDistStr ? `<span style="font-size:11px; font-weight:bold; color:#ec4899;">📏 ${gpDistStr}</span>` : ''}
+                <span style="font-size:11px; font-weight:bold; color:var(--accent-blue);">📍 ${formatDistance(c.distKm)} (${c.bearing.dir})</span>
                 <div style="margin-top:2px; display:flex; gap:4px; justify-content:flex-end;">
-                  <a href="https://www.google.com/maps/search/?api=1&query=${gp.lat},${gp.lng}" target="_blank" style="background:#2563eb; color:#fff; border:none; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold; text-decoration:none;">Maps</a>
-                  <a href="https://waze.com/ul?ll=${gp.lat},${gp.lng}&navigate=yes" target="_blank" style="background:#0284c7; color:#fff; border:none; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold; text-decoration:none;">Waze</a>
+                  <button onclick="openDossierModal('${c.id}')" style="background:#ec4899; color:#fff; border:none; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold; cursor:pointer;">Ficha</button>
+                  <button onclick="openVisitModal('${c.id}')" style="background:#8b5cf6; color:#fff; border:none; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold; cursor:pointer;">Visita</button>
+                  ${cleanTel ? `<a href="https://wa.me/55${cleanTel}" target="_blank" style="background:#16a34a; color:#fff; border:none; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold; text-decoration:none;">Whats</a>` : ''}
+                  <a href="${wazeUrl}" target="_blank" style="background:#0284c7; color:#fff; border:none; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold; text-decoration:none;">Waze</a>
                 </div>
               </div>
             </div>
@@ -3128,29 +3193,45 @@
         });
       }
 
+      if (mode === 'ALL' || mode === 'GOOGLE') {
+        if (googleProspectsList.length > 0) {
+          const userLt = STATE.userPos ? STATE.userPos.lat : null;
+          const userLg = STATE.userPos ? STATE.userPos.lng : null;
+          html += '<div style="font-size:11px; font-weight:bold; color:#ec4899; margin-top:8px; margin-bottom:6px;">🔥 Prospects Google no Raio:</div>';
+          googleProspectsList.forEach(gp => {
+            const gpDist = (userLt !== null) ? haversineDistance(userLt, userLg, gp.lat, gp.lng) : null;
+            const gpDistStr = gpDist !== null ? formatDistance(gpDist) : '';
+            html += `
+              <div style="background:rgba(236,72,153,0.08); border:1px solid rgba(236,72,153,0.3); border-radius:8px; padding:8px 10px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                  <b style="color:#f472b6; font-size:12px;">🌐 ${gp.name}</b>
+                  <div style="font-size:10px; color:var(--text-muted);">${gp.addr.length > 40 ? gp.addr.slice(0,40) + '...' : gp.addr}</div>
+                </div>
+                <div style="text-align:right;">
+                  ${gpDistStr ? `<span style="font-size:11px; font-weight:bold; color:#ec4899;">📏 ${gpDistStr}</span>` : ''}
+                  <div style="margin-top:2px; display:flex; gap:4px; justify-content:flex-end;">
+                    <a href="https://www.google.com/maps/search/?api=1&query=${gp.lat},${gp.lng}" target="_blank" style="background:#2563eb; color:#fff; border:none; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold; text-decoration:none;">Maps</a>
+                    <a href="https://waze.com/ul?ll=${gp.lat},${gp.lng}&navigate=yes" target="_blank" style="background:#0284c7; color:#fff; border:none; padding:2px 6px; border-radius:4px; font-size:9px; font-weight:bold; text-decoration:none;">Waze</a>
+                  </div>
+                </div>
+              </div>
+            `;
+          });
+        }
+      }
+
       box.innerHTML = html;
     }
 
-    // ── BUSCA GOOGLE AUTOMÁTICA & PROSPECÇÃO (OPENSTREETMAP / GOOGLE MAPS API) ──
+    // ── BUSCA GOOGLE AUTOMÁTICA & PROSPECÇÃO (GPS + OSM/GOOGLE) ──
     async function autoScanGoogleProspects(keyword = 'supermercado') {
-      let city = '';
-      // 1. Tenta pegar cidade do primeiro cliente no raio
-      if (STATE.activeClients && STATE.activeClients[0] && STATE.activeClients[0].m) {
-        city = `${STATE.activeClients[0].m}, ${STATE.activeClients[0].u}`;
+      let query = keyword;
+      if (STATE.userPos) {
+        // Usa as coordenadas GPS exatas como parâmetro primário!
+        query = `${keyword}`;
+      } else if (STATE.activeClients && STATE.activeClients[0] && STATE.activeClients[0].m) {
+        query = `${keyword}, ${STATE.activeClients[0].m}, ${STATE.activeClients[0].u}`;
       }
-      // 2. Fallback: usa o que o usuário digitou no campo de cidade
-      if (!city) {
-        const cityInput = document.getElementById('inp-custom-city');
-        if (cityInput && cityInput.value.trim()) city = cityInput.value.trim();
-      }
-      // 3. Fallback: coordenadas GPS
-      if (!city && STATE.userPos) {
-        city = `${STATE.userPos.lat.toFixed(4)}, ${STATE.userPos.lng.toFixed(4)}`;
-      }
-      // 4. Default final
-      if (!city) city = 'Campo Grande, MS';
-
-      const query = `${keyword}, ${city}`;
       document.getElementById('inp-google-query').value = query;
       await performGoogleSearch(query, keyword);
     }
@@ -3158,7 +3239,7 @@
     async function executeGoogleSearch() {
       const q = document.getElementById('inp-google-query').value.trim();
       if (!q) {
-        alert('Digite uma cidade ou termo para buscar.');
+        alert('Digite um termo ou categoria para buscar (ex: pet shop, supermercado, padaria).');
         return;
       }
       await performGoogleSearch(q, 'geral');
@@ -3169,24 +3250,47 @@
       box.innerHTML = `
         <div style="background:rgba(59,130,246,0.1); border:1px solid var(--accent-blue); padding:16px; border-radius:12px; text-align:center; color:#fff;">
           <div class="spinner" style="margin: 0 auto 10px;"></div>
-          <b>🌐 Varrendo Google Maps & Base Interna...</b>
+          <b>🌐 Varrendo Prospects ao seu Redor no GPS...</b>
           <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">Pesquisando "${query}"...</div>
         </div>
       `;
 
-      // 1. Limpa a string substituindo " em " por ", " para o OpenStreetMap / Google Maps entender a cidade
       const formattedQuery = query.replace(/\s+em\s+/gi, ', ').replace(/\s+-\s+/gi, ', ');
+      const userLat = STATE.userPos ? STATE.userPos.lat : null;
+      const userLng = STATE.userPos ? STATE.userPos.lng : null;
 
       try {
-        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formattedQuery)}&limit=15&countrycodes=br&addressdetails=1`;
+        let url = '';
+        if (userLat !== null && userLng !== null) {
+          // Usa Geolocalização GPS como parâmetro de caixa de visão (ViewBox) em torno da sua posição real!
+          const dDeg = 0.15; // ~15km em volta da sua posição no GPS
+          url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formattedQuery)}&lat=${userLat}&lon=${userLng}&bounded=1&viewbox=${userLng-dDeg},${userLat+dDeg},${userLng+dDeg},${userLat-dDeg}&limit=40&countrycodes=br&addressdetails=1`;
+        } else {
+          url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formattedQuery)}&limit=30&countrycodes=br&addressdetails=1`;
+        }
+
         const resp = await fetch(url);
-        const data = await resp.json();
+        let data = await resp.json();
+
+        // Se a busca delimitada por GPS retornou pouca coisa, faz busca ampla de fallback
+        if ((!data || data.length < 5) && userLat !== null) {
+          const fallbackUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formattedQuery)}&limit=30&countrycodes=br&addressdetails=1`;
+          const fResp = await fetch(fallbackUrl);
+          const fData = await fResp.json();
+          if (fData && fData.length > 0) data = (data || []).concat(fData);
+        }
 
         // 2. Busca Clientes Cadastrados na Cidade correspondente na base interna (48k)
-        const qUpper = query.toUpperCase();
+        const normQuery = query.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+        const queryWords = normQuery.split(/[\s,]+/);
+
         const internalMatches = STATE.rawClients.filter(c => {
           if (!c.m) return false;
-          return qUpper.includes(c.m.toUpperCase()) || (c.c && c.c.toUpperCase().includes(qUpper));
+          const normCity = c.m.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+          // Garante comparação de cidade exata sem falso positivo (ex: RONDONOPOLIS != RONDON)
+          const isCityMatch = queryWords.some(w => w.length > 3 && w === normCity);
+          const isNameMatch = c.c && c.c.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(normQuery);
+          return isCityMatch || isNameMatch;
         }).slice(0, 10);
 
         let html = '';
@@ -3586,8 +3690,16 @@
         if (targetId === 'view-google' && !document.getElementById('google-results-box').children.length) {
           autoScanGoogleProspects();
         }
-      });
     });
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('[SW PWA] Registrado com sucesso para modo offline:', reg.scope))
+          .catch(err => console.warn('[SW PWA] Erro ao registrar SW:', err));
+      });
+    }
   </script>
 </body>
 </html>
