@@ -1331,6 +1331,14 @@
           </div>
           <button onclick="openVisitModal()" style="background:linear-gradient(135deg,#8b5cf6,#ec4899); color:#fff; border:none; padding:10px 16px; border-radius:8px; font-size:12px; font-weight:bold; cursor:pointer; box-shadow:0 4px 14px rgba(139,92,246,0.4);">➕ REGISTRAR VISITA</button>
         </div>
+
+        <!-- BOTÕES DE EXPORTAÇÃO E CONSOLIDAÇÃO DO DIA -->
+        <div style="display:flex; gap:8px; margin-bottom:14px; overflow-x:auto; padding-bottom:6px; -webkit-overflow-scrolling:touch;">
+          <button id="btn-export-today-excel" class="act-btn" style="background:#10b981; color:#fff; font-size:11px; font-weight:bold; white-space:nowrap; display:flex; align-items:center; gap:4px; padding:6px 12px; border-radius:6px; border:none; cursor:pointer; box-shadow:0 2px 6px rgba(16,185,129,0.2);">🟢 📊 Exportar Hoje (Excel)</button>
+          <button id="btn-export-all-excel" class="act-btn" style="background:#047857; color:#fff; font-size:11px; font-weight:bold; white-space:nowrap; display:flex; align-items:center; gap:4px; padding:6px 12px; border-radius:6px; border:none; cursor:pointer; box-shadow:0 2px 6px rgba(4,120,87,0.2);">🗂️ Exportar Tudo (Excel)</button>
+          <button id="btn-export-today-pdf" class="act-btn" style="background:#ef4444; color:#fff; font-size:11px; font-weight:bold; white-space:nowrap; display:flex; align-items:center; gap:4px; padding:6px 12px; border-radius:6px; border:none; cursor:pointer; box-shadow:0 2px 6px rgba(239,68,68,0.2);">🔴 📄 Relatório do Dia (PDF)</button>
+        </div>
+
         <div id="visit-history-list"></div>
       </div>
     </section>
@@ -1496,12 +1504,18 @@
       <form id="form-log-visit">
         <input type="hidden" id="vmodal-client-id"/>
 
-        <!-- SELEÇÃO DO CLIENTE / LOJA EM ATENDIMENTO -->
-        <div style="background:#090d16; border:1px solid var(--accent-purple); padding:10px; border-radius:10px; margin-bottom:12px;">
-          <label style="font-size:11px; font-weight:800; color:#c084fc; display:block; margin-bottom:4px;">🏢 Selecione o Cliente / Loja Visitada *</label>
-          <select id="vmodal-client-select" onchange="onVisitClientSelectChange(this.value)" required style="width:100%; background:#1e293b; color:#fff; border:1px solid #475569; border-radius:6px; font-size:12px; padding:8px; font-weight:bold;">
-            <option value="">-- Selecione o Cliente da Sua Lista ou Região --</option>
-          </select>
+        <!-- CLIENTE / LOJA EM ATENDIMENTO -->
+        <div style="background:#090d16; border:1px solid var(--accent-purple); padding:12px; border-radius:10px; margin-bottom:12px;">
+          <div id="vmodal-client-static-wrap" style="display:none;">
+            <span style="font-size:10px; font-weight:800; color:#c084fc; display:block; text-transform:uppercase; letter-spacing:0.5px;">🏢 Cliente Visitado (No PDV)</span>
+            <b id="vmodal-client-static-name" style="font-size:13px; color:#fff; display:block; margin-top:2px;"></b>
+          </div>
+          <div id="vmodal-client-select-wrap">
+            <label style="font-size:11px; font-weight:800; color:#c084fc; display:block; margin-bottom:4px;">🏢 Selecione o Cliente / Loja Visitada *</label>
+            <select id="vmodal-client-select" onchange="onVisitClientSelectChange(this.value)" style="width:100%; background:#1e293b; color:#fff; border:1px solid #475569; border-radius:6px; font-size:12px; padding:8px; font-weight:bold;">
+              <option value="">-- Selecione o Cliente da Sua Lista ou Região --</option>
+            </select>
+          </div>
         </div>
 
         <!-- DADOS GERAIS -->
@@ -1951,7 +1965,7 @@
   <script>
     // AUTO-PURGE DE CACHE ANTIGO NO CELULAR (Garante a versão v111 do Checklist)
     (function() {
-      const TAG = 'v113_fixed_duplicate_id';
+      const TAG = 'v114_daily_reports_locked_pdv';
       if (localStorage.getItem('PWA_VER_TAG') !== TAG) {
         localStorage.setItem('PWA_VER_TAG', TAG);
         if ('caches' in window) {
@@ -3811,34 +3825,47 @@
     window.openVisitModal = function(id) {
       document.getElementById('form-log-visit').reset();
 
-      // Popula o Dropdown de Clientes (Ordenado por proximidade GPS)
-      const selectEl = document.getElementById('vmodal-client-select');
-      let selectHtml = '<option value="">-- Selecione o Cliente Sendo Visitado --</option>';
-
-      let clientList = STATE.rawClients.slice(0, 1500);
-      if (STATE.userPos) {
-        clientList.sort((a, b) => {
-          const dA = (a.lt !== null) ? haversineDistance(STATE.userPos.lat, STATE.userPos.lng, a.lt, a.lg) : 9999;
-          const dB = (b.lt !== null) ? haversineDistance(STATE.userPos.lat, STATE.userPos.lng, b.lt, b.lg) : 9999;
-          return dA - dB;
-        });
-      }
-
-      clientList.forEach(c => {
-        const distStr = (STATE.userPos && c.lt !== null) ? ` (${formatDistance(haversineDistance(STATE.userPos.lat, STATE.userPos.lng, c.lt, c.lg))})` : '';
-        selectHtml += `<option value="${c.id}">${c.c} · CNPJ ${c.j} · ${c.m}/${c.u}${distStr}</option>`;
-      });
-      selectEl.innerHTML = selectHtml;
-
-      // Se passou id explícito (ex: clicou num pino no mapa)
       if (id) {
-        selectEl.value = id;
+        // Se passou id (clique no mapa ou card): Esconde o dropdown e mostra texto estático!
+        const c = STATE.rawClients.find(x => x.id == id);
+        if (!c) return;
+        
+        document.getElementById('vmodal-client-id').value = c.id;
+        document.getElementById('vmodal-client-name').innerText = `📝 Registrar Visita: ${c.c}`;
+        
+        document.getElementById('vmodal-client-static-name').innerText = `${c.c} · CNPJ ${c.j} · ${c.m}/${c.u}`;
+        document.getElementById('vmodal-client-static-wrap').style.display = 'block';
+        document.getElementById('vmodal-client-select-wrap').style.display = 'none';
+        
         onVisitClientSelectChange(id);
-      } else if (clientList.length > 0 && STATE.userPos) {
-        // Auto-seleciona o cliente mais próximo do GPS se não passou id
-        const closest = clientList[0];
-        selectEl.value = closest.id;
-        onVisitClientSelectChange(closest.id);
+      } else {
+        // Se abriu sem id (do botão geral da aba): Mostra o dropdown para escolher
+        document.getElementById('vmodal-client-static-wrap').style.display = 'none';
+        document.getElementById('vmodal-client-select-wrap').style.display = 'block';
+
+        const selectEl = document.getElementById('vmodal-client-select');
+        let selectHtml = '<option value="">-- Selecione o Cliente Sendo Visitado --</option>';
+
+        let clientList = STATE.rawClients.slice(0, 1500);
+        if (STATE.userPos) {
+          clientList.sort((a, b) => {
+            const dA = (a.lt !== null) ? haversineDistance(STATE.userPos.lat, STATE.userPos.lng, a.lt, a.lg) : 9999;
+            const dB = (b.lt !== null) ? haversineDistance(STATE.userPos.lat, STATE.userPos.lng, b.lt, b.lg) : 9999;
+            return dA - dB;
+          });
+        }
+
+        clientList.forEach(c => {
+          const distStr = (STATE.userPos && c.lt !== null) ? ` (${formatDistance(haversineDistance(STATE.userPos.lat, STATE.userPos.lng, c.lt, c.lg))})` : '';
+          selectHtml += `<option value="${c.id}">${c.c} · CNPJ ${c.j} · ${c.m}/${c.u}${distStr}</option>`;
+        });
+        selectEl.innerHTML = selectHtml;
+
+        if (clientList.length > 0 && STATE.userPos) {
+          const closest = clientList[0];
+          selectEl.value = closest.id;
+          onVisitClientSelectChange(closest.id);
+        }
       }
 
       document.getElementById('modal-visit').classList.add('active');
@@ -4064,16 +4091,133 @@
       html2pdf().set(opt).from(pdfContainer).save();
     }
 
-    // ── EXPORTAR VISITAS EM EXCEL ──
-    document.getElementById('btn-export-visits').addEventListener('click', () => {
+    // ── EXPORTAR HOJE (EXCEL) ──
+    document.getElementById('btn-export-today-excel').addEventListener('click', () => {
+      const todayStr = new Date().toLocaleDateString('pt-BR');
+      const todayLogs = STATE.visitLogs.filter(v => v.date && v.date.split(' ')[0] === todayStr);
+      if (todayLogs.length === 0) {
+        alert('Nenhuma visita registrada no dia de hoje para exportar.');
+        return;
+      }
+      const ws = XLSX.utils.json_to_sheet(todayLogs);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Visitas_Hoje");
+      XLSX.writeFile(wb, `Visitas_Hoje_${todayStr.replace(/\//g, '-')}.xlsx`);
+    });
+
+    // ── EXPORTAR TUDO (EXCEL) ──
+    document.getElementById('btn-export-all-excel').addEventListener('click', () => {
       if (STATE.visitLogs.length === 0) {
         alert('Nenhuma visita registrada para exportar.');
         return;
       }
       const ws = XLSX.utils.json_to_sheet(STATE.visitLogs);
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Visitas");
-      XLSX.writeFile(wb, `Relatorio_Visitas_${new Date().toISOString().slice(0,10)}.xlsx`);
+      XLSX.utils.book_append_sheet(wb, ws, "Todas_Visitas");
+      XLSX.writeFile(wb, `Todas_Visitas_${new Date().toISOString().slice(0,10)}.xlsx`);
+    });
+
+    // ── RELATÓRIO DO DIA (PDF CONSOLIDADO) ──
+    document.getElementById('btn-export-today-pdf').addEventListener('click', () => {
+      const todayStr = new Date().toLocaleDateString('pt-BR');
+      const todayLogs = STATE.visitLogs.filter(v => v.date && v.date.split(' ')[0] === todayStr);
+      if (todayLogs.length === 0) {
+        alert('Nenhuma visita registrada no dia de hoje para exportar no PDF.');
+        return;
+      }
+
+      const pdfContainer = document.createElement('div');
+      pdfContainer.style.padding = '24px';
+      pdfContainer.style.fontFamily = 'Helvetica, Arial, sans-serif';
+      pdfContainer.style.color = '#0f172a';
+      pdfContainer.style.background = '#ffffff';
+
+      let totalOrderValue = 0;
+      todayLogs.forEach(v => {
+        if (v.chkValorPedido) {
+          const valNum = parseFloat(v.chkValorPedido.replace(/[^\d,.-]/g, '').replace(',', '.'));
+          if (!isNaN(valNum)) totalOrderValue += valNum;
+        }
+      });
+
+      let visitsHtml = '';
+      todayLogs.forEach((v, idx) => {
+        const c = STATE.rawClients.find(x => x.id == v.clientId);
+        
+        // Contagem de Feitos
+        const fields = [
+          v.chkCredito, v.chkHistoricoStatus, v.chkMixFocoStatus, 
+          v.chkRuptura, v.chkExecucao, v.chkCross, v.chkPrePedido, 
+          v.chkMostreServico, v.chkProveFalta, v.chkPedido, v.chkObjecoes, 
+          v.chkCheckFinal, v.chkGatilho, v.chkFinalizar
+        ];
+        const doneCount = fields.filter(x => x === 'Fez' || x === 'Sim').length;
+
+        visitsHtml += `
+          <div style="border:1px solid #cbd5e1; border-radius:8px; padding:12px; margin-bottom:12px; page-break-inside:avoid;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding-bottom:6px; margin-bottom:8px;">
+              <b style="font-size:12px; color:#1e3a8a;">#${idx + 1} · ${v.clientName}</b>
+              <span style="font-size:10px; font-weight:bold; color:#059669;">Checklist: ${doneCount}/14 concluídos</span>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:10px; color:#475569; margin-bottom:6px;">
+              <div><b>Canal:</b> ${v.type || 'Presencial'} · <b>Resultado:</b> ${v.status}</div>
+              <div><b>Cidade/UF:</b> ${c ? `${c.m}/${c.u}` : 'N/A'} · <b>Filial:</b> ${c ? c.f : 'N/A'}</div>
+            </div>
+            ${v.notes ? `<div style="font-size:10px; font-style:italic; color:#0f172a; background:#f8fafc; padding:6px; border-radius:4px; border-left:3px solid #cbd5e1; margin-top:4px;">"${v.notes}"</div>` : ''}
+          </div>
+        `;
+      });
+
+      pdfContainer.innerHTML = `
+        <div style="border-bottom:3px solid #10b981; padding-bottom:12px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <h2 style="margin:0; color:#065f46; font-size:18px; text-transform:uppercase;">📝 DIÁRIO DE BORDO — RELATÓRIO DO DIA</h2>
+            <div style="font-size:11px; color:#475569; margin-top:2px;">Consolidado Técnico de Trade Marketing, Execução em Loja & Coaching</div>
+          </div>
+          <div style="text-align:right; font-size:10px; color:#475569;">
+            <b>Data de Visita:</b> ${todayStr}<br/>
+            <b>Supervisor/Vendedor:</b> ${STATE.currentUser ? STATE.currentUser.name : 'Supervisor'}
+          </div>
+        </div>
+
+        <!-- QUADRO DE RESUMO DE PERFORMANCE DO DIA -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; background:#f0fdf4; border:1px solid #a7f3d0; padding:12px; border-radius:8px;">
+          <div style="text-align:center;">
+            <div style="font-size:20px; font-weight:800; color:#065f46;">${todayLogs.length}</div>
+            <div style="font-size:10px; color:#047857; font-weight:bold; margin-top:2px;">Lojas Visitadas Hoje</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:20px; font-weight:800; color:#065f46;">R$ ${totalOrderValue.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</div>
+            <div style="font-size:10px; color:#047857; font-weight:bold; margin-top:2px;">Volume de Pedidos Negociados</div>
+          </div>
+        </div>
+
+        <h3 style="font-size:12px; color:#1e293b; border-bottom:1px solid #cbd5e1; padding-bottom:4px; margin-bottom:10px;">📋 LISTA DE AUDITORIAS REALIZADAS HOJE:</h3>
+        
+        ${visitsHtml}
+
+        <!-- ASSINATURAS -->
+        <div style="display:flex; justify-content:space-around; margin-top:50px; font-size:10px; text-align:center; color:#475569; page-break-inside:avoid;">
+          <div>
+            <div>____________________________________________</div>
+            <b style="display:block; margin-top:4px;">Assinatura do Vendedor / Consultor</b>
+          </div>
+          <div>
+            <div>____________________________________________</div>
+            <b style="display:block; margin-top:4px;">Assinatura do Supervisor / Gerente Comercial</b>
+          </div>
+        </div>
+      `;
+
+      const opt = {
+        margin: 8,
+        filename: `Relatorio_Consolidado_Dia_${todayStr.replace(/\//g, '_')}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      html2pdf().set(opt).from(pdfContainer).save();
     });
 
     // ── ADMIN USUÁRIOS ──

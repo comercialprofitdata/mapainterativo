@@ -1,4 +1,4 @@
-const CACHE_NAME = 'visitas-pwa-v113-fixed-duplicate-id';
+const CACHE_NAME = 'visitas-pwa-v114-daily-reports-locked-pdv';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
