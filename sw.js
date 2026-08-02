@@ -1,4 +1,4 @@
-const CACHE_NAME = 'visitas-pwa-v107-offline';
+const CACHE_NAME = 'visitas-pwa-v108-offline';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
