@@ -237,11 +237,11 @@
     #map-container { position: relative; width: 100%; height: 100%; }
     #map { width: 100%; height: 100%; background: #070a12; }
     .fab-gps {
-      position: absolute; bottom: 20px; right: 16px; z-index: 999;
-      width: 44px; height: 44px; background: var(--accent-blue); color: #fff;
-      border: none; border-radius: 50%; font-size: 20px;
+      position: absolute; bottom: 80px; right: 16px; z-index: 8000;
+      width: 46px; height: 46px; background: var(--accent-blue); color: #fff;
+      border: 2px solid #ffffff; border-radius: 50%; font-size: 20px;
       display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 4px 12px rgba(59,130,246,0.5); cursor: pointer;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.6); cursor: pointer;
     }
 
     /* ── LISTA DE PRÓXIMOS ── */
@@ -485,6 +485,7 @@
         <div class="user-pill" onclick="openUserModal()">
           <span>👤</span><span id="lbl-user-name">Usuário</span>
         </div>
+        <button class="btn-logout" style="background:rgba(245,158,11,0.25); border-color:rgba(245,158,11,0.5); color:#fbbf24;" onclick="openHelpGuideModal()" title="Guia de Uso & Instalação">📖 Guia</button>
         <button class="btn-logout" style="background:rgba(59,130,246,0.25); border-color:rgba(59,130,246,0.5); color:#93c5fd;" onclick="forceAppUpdate()" title="Atualizar aplicativo no celular">🔄 Atualizar</button>
         <button class="btn-logout" onclick="logoutUser()" title="Sair do Sistema">🚪 Sair</button>
       </div>
@@ -1003,6 +1004,101 @@
     </div>
   </div>
 
+  <!-- MODAL GUIA DE USO E INSTRUÇÕES DE INSTALAÇÃO DO APP -->
+  <div id="modal-help-guide" class="modal-sheet">
+    <div class="sheet-content" style="max-height:90vh; border: 2px solid #38bdf8; box-shadow: 0 0 30px rgba(56,189,248,0.3);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid #1e293b; padding-bottom:10px;">
+        <h3 style="font-size:15px; color:#38bdf8; display:flex; align-items:center; gap:6px;">
+          <span>📖</span> <span>Guia Completo de Uso & Funcionalidades</span>
+        </h3>
+        <button onclick="closeHelpGuideModal()" style="background:none; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;">✕</button>
+      </div>
+
+      <!-- SEÇÃO 1: INSTALAR COMO APP SEM BARRA DO NAVEGADOR -->
+      <div style="background:linear-gradient(135deg, rgba(37,99,235,0.25), rgba(139,92,246,0.25)); border:1px solid #3b82f6; border-radius:12px; padding:14px; margin-bottom:16px;">
+        <h4 style="color:#60a5fa; font-size:13px; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+          <span>📲</span> <span>Como Abrir Como Aplicativo Nativo (Sem Nome do Site/URL)</span>
+        </h4>
+        <p style="font-size:11px; color:#cbd5e1; line-height:1.5; margin-bottom:8px;">
+          Para ocultar a barra de endereços do Chrome/Safari e usar em tela cheia como aplicativo oficial no seu celular:
+        </p>
+        <div style="font-size:11px; color:#fff; background:#070d19; padding:10px; border-radius:8px; border:1px solid #1e293b; line-height:1.6;">
+          <b>🤖 Android (Google Chrome):</b><br/>
+          1. Toque nos <b>3 pontinhos (⋮)</b> no canto superior direito do Chrome.<br/>
+          2. Selecione <b>"Adicionar à Tela Inicial"</b> ou <b>"Instalar Aplicativo"</b>.<br/>
+          3. Abra o novo ícone criado na tela inicial do celular — ele abrirá em <b>TELA CHEIA sem a URL</b>!<br/><br/>
+          <b>🍏 iPhone (Apple Safari):</b><br/>
+          1. Toque no botão de <b>Compartilhar (quadrado com seta para cima)</b>.<br/>
+          2. Role e selecione <b>"Adicionar à Tela de Início"</b>.<br/>
+          3. O app abrirá 100% nativo em tela cheia!
+        </div>
+      </div>
+
+      <!-- SEÇÃO 2: GUIA DAS ABAS E FUNCIONALIDADES -->
+      <div style="display:flex; flex-direction:column; gap:10px;">
+
+        <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:12px;">
+          <b style="color:var(--accent-blue); font-size:12px;">🗺️ 1. Aba Mapa & Filtros Rápidos</b>
+          <div style="font-size:11px; color:#cbd5e1; margin-top:4px; line-height:1.4;">
+            • <b>Filtros por Raio</b> (500m até 25km ou Todos), Filial, CNAE Alvo e Status.<br/>
+            • <b>🔥 Heatmap (ON/OFF)</b>: Visualize a mancha de calor e densidade de clientes na região.<br/>
+            • <b>🌟 Ver Camadas</b>: Alterne entre Clientes da Base, Prospects Google ou Ambos.<br/>
+            • <b>🎯 Botão Posição (Canto Inferior)</b>: Centraliza o mapa instantaneamente no seu GPS.
+          </div>
+        </div>
+
+        <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:12px;">
+          <b style="color:#a78bfa; font-size:12px;">📋 2. Aba Próximos & Roteirização</b>
+          <div style="font-size:11px; color:#cbd5e1; margin-top:4px; line-height:1.4;">
+            • Lista ordenada dos clientes mais próximos da sua localização.<br/>
+            • Botões de ação rápida em cada cliente: <b>Ficha Completa</b>, <b>Navegar via Waze</b>, <b>Abrir Google Maps</b>, <b>WhatsApp</b> e <b>Registrar Visita</b>.<br/>
+            • <b>🧭 Rota Otimizada (TSP)</b>: Selecione 5, 10 ou 20 clientes e monte a menor rota para rodar no Google Maps.
+          </div>
+        </div>
+
+        <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:12px;">
+          <b style="color:var(--accent-pink); font-size:12px;">🎯 3. Aba Radar 360°</b>
+          <div style="font-size:11px; color:#cbd5e1; margin-top:4px; line-height:1.4;">
+            • Radar militar com varredura visual em tempo real.<br/>
+            • <b>Blips Verdes</b> = Clientes Alvo | <b>Blips Azuis</b> = Outros Clientes | <b>Blips Rosas</b> = Prospects Google.<br/>
+            • <b>Toque em qualquer blip no radar</b> para abrir a Ficha e opções de atendimento presencial!
+          </div>
+        </div>
+
+        <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:12px;">
+          <b style="color:#38bdf8; font-size:12px;">📊 4. Aba Dashboard Gerencial</b>
+          <div style="font-size:11px; color:#cbd5e1; margin-top:4px; line-height:1.4;">
+            • Métricas e KPIs da operação comercial em tempo real.<br/>
+            • Gráficos de Clientes por Filial, Top 10 Cidades, Histórico de Visitas e Ranking.<br/>
+            • <b>Alertas Inteligentes</b> (prospects não salvos, proximidade &lt;300m, clientes sem compra).<br/>
+            • <b>Cobertura por Cidade</b> (% de atendimento em cada município).
+          </div>
+        </div>
+
+        <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:12px;">
+          <b style="color:var(--accent-green); font-size:12px;">🌐 5. Aba Prospecção Google / OSM</b>
+          <div style="font-size:11px; color:#cbd5e1; margin-top:4px; line-height:1.4;">
+            • <b>Varredura Automática de 10 Segmentos Alvo</b> (Supermercados, Padarias, Açougues, Bebidas, etc.).<br/>
+            • <b>Cruzamento Inteligente com a Base (5 km)</b>: Identifica se o local retornado pelo Google já é seu cliente ou se é um Novo Prospect!
+          </div>
+        </div>
+
+        <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:12px;">
+          <b style="color:var(--accent-orange); font-size:12px;">📷 6. Fotos GPS & Registros de Visita</b>
+          <div style="font-size:11px; color:#cbd5e1; margin-top:4px; line-height:1.4;">
+            • Capture fotos de fachada e marque o local exato com pino no GPS.<br/>
+            • Registre o resultado da visita com histórico salvo no banco local <b>IndexedDB</b>.
+          </div>
+        </div>
+
+      </div>
+
+      <div style="margin-top:16px; text-align:center;">
+        <button onclick="closeHelpGuideModal()" style="background:var(--accent-blue); color:#fff; border:none; padding:12px 20px; border-radius:8px; font-weight:bold; cursor:pointer; width:100%;">Entendi, Fechar Guia</button>
+      </div>
+    </div>
+  </div>
+
   <!-- BOTTOM NAVIGATION -->
   <nav id="bottom-nav" style="display:none;">
     <div class="nav-item active" data-tab="view-map" id="nav-mod-map">
@@ -1290,6 +1386,13 @@
           drawRadarCanvas();
         });
       }
+    }
+
+    function openHelpGuideModal() {
+      document.getElementById('modal-help-guide').style.display = 'flex';
+    }
+    function closeHelpGuideModal() {
+      document.getElementById('modal-help-guide').style.display = 'none';
     }
 
     function populateFiliaisDropdown() {
