@@ -879,41 +879,7 @@
     </div>
   </div>
 
-  <!-- MODAL REGISTRO DE VISITA -->
-  <div id="modal-visit" class="modal-sheet">
-    <div class="sheet-content">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-        <h3 id="vmodal-client-name" style="font-size:14px; color:#fff;">Registrar Visita</h3>
-        <button onclick="closeVisitModal()" style="background:none; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;">✕</button>
-      </div>
-      <form id="form-log-visit">
-        <input type="hidden" id="vmodal-client-id"/>
-        <div class="form-group">
-          <label>Resultado da Visita *</label>
-          <select id="vmodal-status" required>
-            <option value="Visita Concluída">✅ Visita Concluída com Sucesso</option>
-            <option value="Venda Realizada">🛒 Venda / Pedido Realizado</option>
-            <option value="Proposta Entregue">📄 Proposta Comercial Entregue</option>
-            <option value="Cliente Ausente">🚪 Cliente Ausente / Fechado</option>
-            <option value="Retornar Depois">⏰ Retornar em outra data</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Tipo de Atendimento *</label>
-          <select id="vmodal-type" required>
-            <option value="Presencial">🚗 Presencial (No Local)</option>
-            <option value="Telefone">📞 Ligação Telefônica</option>
-            <option value="WhatsApp">💬 Mensagem WhatsApp</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Observações / Resumo da Visita *</label>
-          <textarea id="vmodal-notes" rows="4" required placeholder="Digite o resumo da conversa..."></textarea>
-        </div>
-        <button type="submit" class="btn-submit" style="background: var(--accent-purple);">💾 Salvar Visita</button>
-      </form>
-    </div>
-  </div>
+  <!-- DUPLICATE MODAL REMOVED TO PREVENT CONFLICTS -->
 
   <!-- MODAL FOTO NO GPS -->
   <div id="modal-photo-pin" class="modal-sheet">
@@ -1985,7 +1951,7 @@
   <script>
     // AUTO-PURGE DE CACHE ANTIGO NO CELULAR (Garante a versão v111 do Checklist)
     (function() {
-      const TAG = 'v112_clean_form_no_popups';
+      const TAG = 'v113_fixed_duplicate_id';
       if (localStorage.getItem('PWA_VER_TAG') !== TAG) {
         localStorage.setItem('PWA_VER_TAG', TAG);
         if ('caches' in window) {
