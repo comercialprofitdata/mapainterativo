@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   
   <style>
     :root {
@@ -1505,38 +1506,199 @@
     </div>
   </div>
 
-  <!-- MODAL REGISTRO DE VISITA -->
+  <!-- MODAL REGISTRO DE VISITA DE CAMPO & CHECKLIST TRADE -->
   <div id="modal-visit" class="modal-sheet">
-    <div class="sheet-content">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-        <h3 id="vmodal-client-name" style="font-size:14px; color:#fff;">Registrar Visita</h3>
-        <button onclick="closeVisitModal()" style="background:none; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;">✕</button>
+    <div class="sheet-content" style="max-width: 680px; max-height: 90vh; overflow-y: auto;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #1e293b; padding-bottom:8px;">
+        <div>
+          <h3 id="vmodal-client-name" style="font-size:15px; color:#fff; font-weight:800;">📝 Audit & Checklist de Visita de Campo</h3>
+          <div style="font-size:11px; color:var(--accent-purple);">Trade Marketing, Execução & Coaching de Vendas</div>
+        </div>
+        <button onclick="closeVisitModal()" style="background:none; border:none; color:var(--text-muted); font-size:22px; cursor:pointer;">✕</button>
       </div>
+
       <form id="form-log-visit">
         <input type="hidden" id="vmodal-client-id"/>
-        <div class="form-group">
-          <label>Resultado da Visita *</label>
-          <select id="vmodal-status" required>
-            <option value="Visita Concluída">✅ Visita Concluída com Sucesso</option>
-            <option value="Venda Realizada">🛒 Venda / Pedido Realizado</option>
-            <option value="Proposta Entregue">📄 Proposta Comercial Entregue</option>
-            <option value="Cliente Ausente">🚪 Cliente Ausente / Fechado</option>
-            <option value="Retornar Depois">⏰ Retornar em outra data</option>
-          </select>
+
+        <!-- DADOS GERAIS -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label>Resultado Geral *</label>
+            <select id="vmodal-status" required style="background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:6px;">
+              <option value="Visita Concluída">✅ Visita Concluída com Sucesso</option>
+              <option value="Venda Realizada">🛒 Venda / Pedido Realizado</option>
+              <option value="Proposta Entregue">📄 Proposta Comercial Entregue</option>
+              <option value="Cliente Ausente">🚪 Cliente Ausente / Fechado</option>
+              <option value="Retornar Depois">⏰ Retornar em outra data</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label>Canal de Atendimento *</label>
+            <select id="vmodal-type" required style="background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:6px;">
+              <option value="Presencial">🚗 Presencial (No Local)</option>
+              <option value="Telefone">📞 Ligação Telefônica</option>
+              <option value="WhatsApp">💬 Mensagem WhatsApp</option>
+            </select>
+          </div>
         </div>
-        <div class="form-group">
-          <label>Tipo de Atendimento *</label>
-          <select id="vmodal-type" required>
-            <option value="Presencial">🚗 Presencial (No Local)</option>
-            <option value="Telefone">📞 Ligação Telefônica</option>
-            <option value="WhatsApp">💬 Mensagem WhatsApp</option>
-          </select>
+
+        <!-- 1. PREPARAÇÃO — Estratégia -->
+        <div style="background:#0b1324; border:1px solid #1e293b; border-radius:10px; padding:12px; margin-bottom:12px;">
+          <b style="color:#60a5fa; font-size:12px; display:block; margin-bottom:8px;">1. 🎯 PREPARAÇÃO — Estratégia</b>
+          
+          <div style="margin-bottom:8px;">
+            <label style="font-size:11px; color:#cbd5e1;">• Crédito OK? O cliente pode comprar hoje?</label>
+            <div style="display:flex; gap:6px; margin-top:4px;">
+              <select id="vchk-credito" style="width:120px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:4px;">
+                <option value="Sim">✅ Sim (Liberado)</option>
+                <option value="Não">❌ Não (Bloqueado)</option>
+                <option value="Pendente">⚠️ Pendente/Análise</option>
+              </select>
+              <input type="text" id="vchk-credito-obs" placeholder="Obs de crédito..." style="flex:1; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:4px 8px;"/>
+            </div>
+          </div>
+
+          <div style="margin-bottom:8px;">
+            <label style="font-size:11px; color:#cbd5e1;">• Histórico: O que ele deixou de comprar nas últimas visitas?</label>
+            <input type="text" id="vchk-historico" placeholder="Itens que o cliente parou de comprar..." style="width:100%; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:6px; margin-top:4px;"/>
+          </div>
+
+          <div>
+            <label style="font-size:11px; color:#cbd5e1;">• Defina o Alvo: Qual é o MIX FOCO para esta loja hoje?</label>
+            <input type="text" id="vchk-mix-foco" placeholder="Produtos foco para vender nesta visita..." style="width:100%; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:6px; margin-top:4px;"/>
+          </div>
         </div>
-        <div class="form-group">
-          <label>Observações / Resumo da Visita *</label>
-          <textarea id="vmodal-notes" rows="4" required placeholder="Digite o resumo da conversa..."></textarea>
+
+        <!-- 2. GÔNDOLA — Mãos à Obra -->
+        <div style="background:#0b1324; border:1px solid #1e293b; border-radius:10px; padding:12px; margin-bottom:12px;">
+          <b style="color:#34d399; font-size:12px; display:block; margin-bottom:8px;">2. 🛒 GÔNDOLA — Mãos à Obra</b>
+
+          <div style="margin-bottom:8px;">
+            <label style="font-size:11px; color:#cbd5e1;">• RUPTURA: Identifique e anote o que falta na prateleira</label>
+            <div style="display:flex; gap:6px; margin-top:4px;">
+              <select id="vchk-ruptura" style="width:110px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:4px;">
+                <option value="Fez">✅ Fez (Identificou)</option>
+                <option value="Não Fez">❌ Não Fez</option>
+              </select>
+              <input type="text" id="vchk-ruptura-obs" placeholder="Produtos em falta/ruptura..." style="flex:1; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:4px 8px;"/>
+            </div>
+          </div>
+
+          <div style="margin-bottom:8px;">
+            <label style="font-size:11px; color:#cbd5e1;">• EXECUÇÃO: Limpar, Abastecer e Organizar (Layout)</label>
+            <select id="vchk-execucao" style="width:100%; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:6px; margin-top:4px;">
+              <option value="Fez">✅ Fez (Limpou, abasteceu e organizou layout)</option>
+              <option value="Não Fez">❌ Não Fez</option>
+            </select>
+          </div>
+
+          <div style="margin-bottom:8px;">
+            <label style="font-size:11px; color:#cbd5e1;">• CROSS: Montar ponto extra (Ex: Produto A + Produto B)</label>
+            <div style="display:flex; gap:6px; margin-top:4px;">
+              <select id="vchk-cross" style="width:110px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:4px;">
+                <option value="Fez">✅ Fez</option>
+                <option value="Não Fez">❌ Não Fez</option>
+              </select>
+              <input type="text" id="vchk-cross-obs" placeholder="Detalhes do ponto extra/cross..." style="flex:1; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:4px 8px;"/>
+            </div>
+          </div>
+
+          <div>
+            <label style="font-size:11px; color:#cbd5e1;">• PRÉ-PEDIDO: Monte o pedido ideal</label>
+            <div style="display:flex; gap:6px; margin-top:4px;">
+              <select id="vchk-pre-pedido" style="width:110px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:4px;">
+                <option value="Fez">✅ Fez</option>
+                <option value="Não Fez">❌ Não Fez</option>
+              </select>
+              <input type="text" id="vchk-pre-pedido-val" placeholder="Valor/Itens do pré-pedido..." style="flex:1; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:4px 8px;"/>
+            </div>
+          </div>
         </div>
-        <button type="submit" class="btn-submit" style="background: var(--accent-purple);">💾 Salvar Visita</button>
+
+        <!-- 3. NEGOCIAÇÃO — Frente a Frente -->
+        <div style="background:#0b1324; border:1px solid #1e293b; border-radius:10px; padding:12px; margin-bottom:12px;">
+          <b style="color:#fbbf24; font-size:12px; display:block; margin-bottom:8px;">3. 🤝 NEGOCIAÇÃO — Frente a Frente</b>
+
+          <div style="margin-bottom:8px;">
+            <label style="font-size:11px; color:#cbd5e1;">• MOSTRE O SERVIÇO: Falou da limpeza/organização realizada?</label>
+            <select id="vchk-mostre-servico" style="width:100%; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:6px; margin-top:4px;">
+              <option value="Fez">✅ Fez (Demonstrou o serviço feito na loja)</option>
+              <option value="Não Fez">❌ Não Fez</option>
+            </select>
+          </div>
+
+          <div style="margin-bottom:8px;">
+            <label style="font-size:11px; color:#cbd5e1;">• PROVE A FALTA: Mostrou a Ruptura ao comprador (Perda de dinheiro)?</label>
+            <select id="vchk-prove-falta" style="width:100%; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:6px; margin-top:4px;">
+              <option value="Fez">✅ Fez (Provou o estoque zerado)</option>
+              <option value="Não Fez">❌ Não Fez</option>
+            </select>
+          </div>
+
+          <div style="margin-bottom:8px;">
+            <label style="font-size:11px; color:#cbd5e1;">• O PEDIDO: Apresentou a reposição + Mix Foco</label>
+            <div style="display:flex; gap:6px; margin-top:4px;">
+              <select id="vchk-pedido" style="width:110px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:4px;">
+                <option value="Fez">✅ Fez</option>
+                <option value="Não Fez">❌ Não Fez</option>
+              </select>
+              <input type="text" id="vchk-valor-pedido" placeholder="Valor R$ do pedido fechado..." style="flex:1; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:4px 8px;"/>
+            </div>
+          </div>
+
+          <div>
+            <label style="font-size:11px; color:#cbd5e1;">• OBJEÇÕES: Usou argumentos de GIRO e MARGEM?</label>
+            <div style="display:flex; gap:6px; margin-top:4px;">
+              <select id="vchk-objecoes" style="width:110px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:4px;">
+                <option value="Fez">✅ Fez</option>
+                <option value="Não Fez">❌ Não Fez</option>
+              </select>
+              <input type="text" id="vchk-objecoes-obs" placeholder="Objeções e respostas aplicadas..." style="flex:1; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:4px 8px;"/>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. FECHAMENTO — O Acordo -->
+        <div style="background:#0b1324; border:1px solid #1e293b; border-radius:10px; padding:12px; margin-bottom:12px;">
+          <b style="color:#f472b6; font-size:12px; display:block; margin-bottom:8px;">4. 🏁 FECHAMENTO — O Acordo</b>
+
+          <div style="margin-bottom:8px;">
+            <label style="font-size:11px; color:#cbd5e1;">• CHECK FINAL: Confirme Valor Total, Prazo e DATA DE ENTREGA</label>
+            <div style="display:flex; gap:6px; margin-top:4px;">
+              <select id="vchk-check-final" style="width:110px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:4px;">
+                <option value="Fez">✅ Fez</option>
+                <option value="Não Fez">❌ Não Fez</option>
+              </select>
+              <input type="text" id="vchk-entrega-prazo" placeholder="Data de entrega e prazo de pagamento..." style="flex:1; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:4px 8px;"/>
+            </div>
+          </div>
+
+          <div style="margin-bottom:8px;">
+            <label style="font-size:11px; color:#cbd5e1;">• GATILHO: Já avise o foco da próxima visita</label>
+            <div style="display:flex; gap:6px; margin-top:4px;">
+              <select id="vchk-gatilho" style="width:110px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:4px;">
+                <option value="Fez">✅ Fez</option>
+                <option value="Não Fez">❌ Não Fez</option>
+              </select>
+              <input type="text" id="vchk-foco-proxima" placeholder="Foco já combinado para próxima visita..." style="flex:1; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:4px 8px;"/>
+            </div>
+          </div>
+
+          <div>
+            <label style="font-size:11px; color:#cbd5e1;">• FINALIZAR: "Posso ajudar em algo mais hoje?"</label>
+            <select id="vchk-finalizar" style="width:100%; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:6px; margin-top:4px;">
+              <option value="Fez">✅ Fez (Perguntou antes de sair)</option>
+              <option value="Não Fez">❌ Não Fez</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Resumo / Observações Finais do Supervisor/Vendedor</label>
+          <textarea id="vmodal-notes" rows="2" placeholder="Resumo geral das decisões da visita..."></textarea>
+        </div>
+
+        <button type="submit" class="btn-submit" style="background: var(--accent-purple); padding:12px; font-size:14px;">💾 Salvar Relatório de Visita</button>
       </form>
     </div>
   </div>
@@ -3706,15 +3868,49 @@
         status: document.getElementById('vmodal-status').value,
         type: document.getElementById('vmodal-type').value,
         notes: document.getElementById('vmodal-notes').value,
-        date: new Date().toLocaleString('pt-BR')
+        date: new Date().toLocaleString('pt-BR'),
+
+        // 1. PREPARAÇÃO
+        chkCredito: document.getElementById('vchk-credito').value,
+        chkCreditoObs: document.getElementById('vchk-credito-obs').value,
+        chkHistorico: document.getElementById('vchk-historico').value,
+        chkMixFoco: document.getElementById('vchk-mix-foco').value,
+
+        // 2. GÔNDOLA
+        chkRuptura: document.getElementById('vchk-ruptura').value,
+        chkRupturaObs: document.getElementById('vchk-ruptura-obs').value,
+        chkExecucao: document.getElementById('vchk-execucao').value,
+        chkCross: document.getElementById('vchk-cross').value,
+        chkCrossObs: document.getElementById('vchk-cross-obs').value,
+        chkPrePedido: document.getElementById('vchk-pre-pedido').value,
+        chkPrePedidoVal: document.getElementById('vchk-pre-pedido-val').value,
+
+        // 3. NEGOCIAÇÃO
+        chkMostreServico: document.getElementById('vchk-mostre-servico').value,
+        chkProveFalta: document.getElementById('vchk-prove-falta').value,
+        chkPedido: document.getElementById('vchk-pedido').value,
+        chkValorPedido: document.getElementById('vchk-valor-pedido').value,
+        chkObjecoes: document.getElementById('vchk-objecoes').value,
+        chkObjecoesObs: document.getElementById('vchk-objecoes-obs').value,
+
+        // 4. FECHAMENTO
+        chkCheckFinal: document.getElementById('vchk-check-final').value,
+        chkEntregaPrazo: document.getElementById('vchk-entrega-prazo').value,
+        chkGatilho: document.getElementById('vchk-gatilho').value,
+        chkFocoProxima: document.getElementById('vchk-foco-proxima').value,
+        chkFinalizar: document.getElementById('vchk-finalizar').value
       };
 
       STATE.visitLogs.unshift(log);
       syncVisitLogs();
 
-      alert('Visita salva!');
+      alert(`✅ Relatório de Visita salvo com sucesso!\n\nGerando a opção de exportação em PDF...`);
       closeVisitModal();
       renderVisitHistory();
+
+      if (confirm('Deseja baixar e exportar o relatório desta visita em PDF agora para enviar ao vendedor?')) {
+        exportVisitPDF(log.id);
+      }
     });
 
     function renderVisitHistory() {
@@ -3725,14 +3921,146 @@
       }
       let html = '';
       STATE.visitLogs.forEach(v => {
+        const c = STATE.rawClients.find(x => x.id == v.clientId);
+        const fmtBadge = (val) => val === 'Fez' || val === 'Sim' ? '<span style="color:#34d399; font-weight:bold;">✔ FEITO</span>' : `<span style="color:#f87171; font-weight:bold;">✖ NÃO FEITO (${val||'N/A'})</span>`;
+
         html += `
-          <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; padding:8px; margin-bottom:6px;">
-            <b style="color:#fff; font-size:12px;">${v.clientName}</b> - <span style="color:var(--accent-green);">${v.status}</span> (${v.date})<br/>
-            <span style="font-size:11px; color:#cbd5e1;">"${v.notes}"</span>
+          <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:12px; margin-bottom:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <b style="color:#fff; font-size:13px;">${v.clientName || (c ? c.c : 'Cliente')}</b>
+                <div style="font-size:10px; color:var(--text-muted); margin-top:2px;">CNPJ: ${c ? c.j : 'N/A'} · ${c ? `${c.m}/${c.u}` : ''}</div>
+              </div>
+              <button onclick="exportVisitPDF('${v.id}')" style="background:#0284c7; color:#fff; border:none; padding:5px 10px; border-radius:6px; font-size:10px; font-weight:bold; cursor:pointer;">📄 Exportar PDF</button>
+            </div>
+
+            <div style="margin-top:8px; font-size:11px; color:var(--accent-green); font-weight:bold;">
+              ${v.status} (${v.type}) · <span style="color:#94a3b8; font-weight:normal;">${v.date}</span>
+            </div>
+
+            <!-- RESUMO DOS 4 ESTÁGIOS DA VISITA -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px; background:#090d16; padding:8px; border-radius:6px; font-size:10px;">
+              <div><b>1. Preparação:</b> Crédito ${fmtBadge(v.chkCredito)} ${v.chkMixFoco ? `· Mix: ${v.chkMixFoco}` : ''}</div>
+              <div><b>2. Gôndola:</b> Ruptura ${fmtBadge(v.chkRuptura)} · Execução ${fmtBadge(v.chkExecucao)}</div>
+              <div><b>3. Negociação:</b> Provou Ruptura ${fmtBadge(v.chkProveFalta)} ${v.chkValorPedido ? `· Pedido R$: ${v.chkValorPedido}` : ''}</div>
+              <div><b>4. Fechamento:</b> Check Final ${fmtBadge(v.chkCheckFinal)} ${v.chkEntregaPrazo ? `· Entrega: ${v.chkEntregaPrazo}` : ''}</div>
+            </div>
+
+            ${v.notes ? `<div style="font-size:11px; color:#cbd5e1; margin-top:6px; font-style:italic;">"${v.notes}"</div>` : ''}
           </div>
         `;
       });
       box.innerHTML = html;
+    }
+
+    function exportVisitPDF(visitId) {
+      const v = STATE.visitLogs.find(x => x.id == visitId);
+      if (!v) return alert('Relatório de visita não encontrado.');
+      const c = STATE.rawClients.find(x => x.id == v.clientId);
+
+      const pdfContainer = document.createElement('div');
+      pdfContainer.style.padding = '24px';
+      pdfContainer.style.fontFamily = 'Helvetica, Arial, sans-serif';
+      pdfContainer.style.color = '#0f172a';
+      pdfContainer.style.background = '#ffffff';
+
+      const fmtBadge = (val) => val === 'Fez' || val === 'Sim'
+        ? `<span style="color:#059669; font-weight:bold;">[ ✔ FEITO ]</span>`
+        : `<span style="color:#dc2626; font-weight:bold;">[ ✖ NÃO FEITO (${val || 'N/A'}) ]</span>`;
+
+      pdfContainer.innerHTML = `
+        <div style="border-bottom:3px solid #2563eb; padding-bottom:12px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <h2 style="margin:0; color:#1e3a8a; font-size:18px; text-transform:uppercase;">📍 MAPA INTERATIVO PRO — AUDIT DE VISITA DE CAMPO</h2>
+            <div style="font-size:11px; color:#475569; margin-top:2px;">Relatório Técnico de Trade Marketing, Execução em Loja & Coaching</div>
+          </div>
+          <div style="text-align:right; font-size:10px; color:#475569;">
+            <b>Data/Hora:</b> ${v.date}<br/>
+            <b>Código Registro:</b> ${v.id}
+          </div>
+        </div>
+
+        <!-- CABEÇALHO DO CLIENTE -->
+        <div style="background:#f8fafc; border:1px solid #cbd5e1; padding:12px; border-radius:6px; font-size:11px; margin-bottom:16px;">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <div><b>Razão Social / Loja:</b> ${v.clientName || (c ? c.c : 'Cliente N/A')}</div>
+            <div><b>CNPJ:</b> ${c ? c.j : 'N/A'}</div>
+            <div><b>Cidade/UF:</b> ${c ? `${c.m}/${c.u}` : 'N/A'} · <b>Filial:</b> ${c ? c.f : 'N/A'}</div>
+            <div><b>Canal:</b> ${v.type || 'Presencial'} · <b>Resultado:</b> ${v.status}</div>
+            <div><b>Acompanhado por (Supervisor/Vendedor):</b> ${STATE.currentUser ? STATE.currentUser.name : 'Vendedor/Supervisor'}</div>
+          </div>
+        </div>
+
+        <!-- ESTÁGIO 1 -->
+        <div style="margin-bottom:14px;">
+          <div style="background:#dbeafe; color:#1e40af; padding:6px 10px; font-size:12px; font-weight:bold; border-radius:4px; margin-bottom:6px;">1. 🎯 PREPARAÇÃO — Estratégia</div>
+          <table style="width:100%; border-collapse:collapse; font-size:11px;">
+            <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:6px; width:65%;">Crédito OK? O cliente pode comprar hoje?</td><td style="padding:6px;">${fmtBadge(v.chkCredito)} ${v.chkCreditoObs ? `(${v.chkCreditoObs})` : ''}</td></tr>
+            <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:6px;">Histórico: O que deixou de comprar nas últimas visitas?</td><td style="padding:6px;">${v.chkHistorico || 'Nenhum item pendente registrado'}</td></tr>
+            <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:6px;">Defina o Alvo: Qual é o MIX FOCO para esta loja hoje?</td><td style="padding:6px;"><b>${v.chkMixFoco || 'Não informado'}</b></td></tr>
+          </table>
+        </div>
+
+        <!-- ESTÁGIO 2 -->
+        <div style="margin-bottom:14px;">
+          <div style="background:#d1fae5; color:#065f46; padding:6px 10px; font-size:12px; font-weight:bold; border-radius:4px; margin-bottom:6px;">2. 🛒 GÔNDOLA — Mãos à Obra</div>
+          <table style="width:100%; border-collapse:collapse; font-size:11px;">
+            <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:6px; width:65%;">RUPTURA: Identificou e anotou o que falta na prateleira?</td><td style="padding:6px;">${fmtBadge(v.chkRuptura)} ${v.chkRupturaObs ? `(${v.chkRupturaObs})` : ''}</td></tr>
+            <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:6px;">EXECUÇÃO: Limpar, Abastecer e Organizar (Layout)?</td><td style="padding:6px;">${fmtBadge(v.chkExecucao)}</td></tr>
+            <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:6px;">CROSS: Montou ponto extra / exposição casada?</td><td style="padding:6px;">${fmtBadge(v.chkCross)} ${v.chkCrossObs ? `(${v.chkCrossObs})` : ''}</td></tr>
+            <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:6px;">PRÉ-PEDIDO: Montou o pedido ideal?</td><td style="padding:6px;">${fmtBadge(v.chkPrePedido)} ${v.chkPrePedidoVal ? `(R$ ${v.chkPrePedidoVal})` : ''}</td></tr>
+          </table>
+        </div>
+
+        <!-- ESTÁGIO 3 -->
+        <div style="margin-bottom:14px;">
+          <div style="background:#fef3c7; color:#92400e; padding:6px 10px; font-size:12px; font-weight:bold; border-radius:4px; margin-bottom:6px;">3. 🤝 NEGOCIAÇÃO — Frente a Frente</div>
+          <table style="width:100%; border-collapse:collapse; font-size:11px;">
+            <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:6px; width:65%;">MOSTRE O SERVIÇO: Falou da limpeza/organização feita na loja?</td><td style="padding:6px;">${fmtBadge(v.chkMostreServico)}</td></tr>
+            <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:6px;">PROVE A FALTA: Mostrou a Ruptura/Perda financeira ao comprador?</td><td style="padding:6px;">${fmtBadge(v.chkProveFalta)}</td></tr>
+            <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:6px;">O PEDIDO: Apresentou a reposição + Mix Foco?</td><td style="padding:6px;">${fmtBadge(v.chkPedido)} <b>${v.chkValorPedido ? `(Valor R$: ${v.chkValorPedido})` : ''}</b></td></tr>
+            <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:6px;">OBJEÇÕES: Usou argumentos de giro e margem?</td><td style="padding:6px;">${fmtBadge(v.chkObjecoes)} ${v.chkObjecoesObs ? `(${v.chkObjecoesObs})` : ''}</td></tr>
+          </table>
+        </div>
+
+        <!-- ESTÁGIO 4 -->
+        <div style="margin-bottom:14px;">
+          <div style="background:#fce7f3; color:#9d174d; padding:6px 10px; font-size:12px; font-weight:bold; border-radius:4px; margin-bottom:6px;">4. 🏁 FECHAMENTO — O Acordo</div>
+          <table style="width:100%; border-collapse:collapse; font-size:11px;">
+            <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:6px; width:65%;">CHECK FINAL: Confirmou valor total, prazo e DATA DE ENTREGA?</td><td style="padding:6px;">${fmtBadge(v.chkCheckFinal)} ${v.chkEntregaPrazo ? `(${v.chkEntregaPrazo})` : ''}</td></tr>
+            <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:6px;">GATILHO: Avisou o foco combinado para a próxima visita?</td><td style="padding:6px;">${fmtBadge(v.chkGatilho)} ${v.chkFocoProxima ? `(${v.chkFocoProxima})` : ''}</td></tr>
+            <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:6px;">FINALIZAR: Perguntou "Posso ajudar em algo mais hoje?"</td><td style="padding:6px;">${fmtBadge(v.chkFinalizar)}</td></tr>
+          </table>
+        </div>
+
+        <!-- RESUMO DAS NOTAS -->
+        <div style="background:#f1f5f9; border-left:4px solid #2563eb; padding:10px; border-radius:4px; font-size:11px; margin-top:14px; margin-bottom:24px;">
+          <b>Resumo & Observações do Vendedor/Supervisor:</b><br/>
+          <span style="color:#334155;">"${v.notes || 'Nenhuma observação final informada.'}"</span>
+        </div>
+
+        <!-- CAMPO DE ASSINATURAS -->
+        <div style="display:flex; justify-content:space-around; margin-top:40px; font-size:10px; text-align:center; color:#475569;">
+          <div>
+            <div>____________________________________________</div>
+            <b style="display:block; margin-top:4px;">Assinatura do Vendedor / Consultor</b>
+          </div>
+          <div>
+            <div>____________________________________________</div>
+            <b style="display:block; margin-top:4px;">Assinatura do Supervisor / Gerente Comercial</b>
+          </div>
+        </div>
+      `;
+
+      const opt = {
+        margin: 8,
+        filename: `Relatorio_Visita_${(v.clientName||'Cliente').replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      html2pdf().set(opt).from(pdfContainer).save();
     }
 
     // ── EXPORTAR VISITAS EM EXCEL ──
