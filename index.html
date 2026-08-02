@@ -345,34 +345,36 @@
     .nav-item .icon { font-size: 18px; margin-bottom: 2px; }
     .nav-item.active { color: var(--accent-blue); }
 
-    /* MODAL SHEETS & DOSSIER */
+    /* MODAL SHEETS & DOSSIER (SOBREPOSIÇÃO TOTAL & ZERO CORTE MOBILE) */
     .modal-sheet {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.7); z-index: 9000; display: none;
-      align-items: flex-end; backdrop-filter: blur(4px);
+      background: rgba(0,0,0,0.85); z-index: 100000; display: none;
+      align-items: flex-end; backdrop-filter: blur(8px);
     }
     .modal-sheet.active { display: flex; }
     .sheet-content {
-      background: #0f172a; border-top-left-radius: 16px; border-top-right-radius: 16px;
-      width: 100%; max-height: 85vh; overflow-y: auto; padding: 16px; border-top: 1px solid var(--border-color);
+      background: #0f172a; border-top-left-radius: 20px; border-top-right-radius: 20px;
+      width: 100%; max-height: 92vh; overflow-y: auto; padding: 18px; padding-bottom: 85px; border-top: 1px solid var(--border-color);
+      box-shadow: 0 -8px 32px rgba(0,0,0,0.9);
     }
 
     #modal-dossier {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.75); z-index: 9500; display: none;
-      align-items: flex-end; backdrop-filter: blur(6px);
+      background: rgba(0,0,0,0.85); z-index: 100050; display: none;
+      align-items: flex-end; backdrop-filter: blur(8px);
     }
     #modal-dossier.active { display: flex; }
     .dossier-box {
-      background: #090d16; border-top-left-radius: 18px; border-top-right-radius: 18px;
-      width: 100%; max-height: 90vh; display: flex; flex-direction: column;
+      background: #090d16; border-top-left-radius: 20px; border-top-right-radius: 20px;
+      width: 100%; max-height: 94vh; display: flex; flex-direction: column;
       border-top: 1px solid var(--border-color);
+      padding-bottom: 70px;
     }
     .dossier-header { padding: 14px 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
-    .dossier-tabs { display: flex; border-bottom: 1px solid var(--border-color); background: #04060c; overflow-x: auto; }
-    .dtab { padding: 10px 14px; font-size: 11px; font-weight: 600; color: var(--text-muted); cursor: pointer; white-space: nowrap; }
-    .dtab.active { color: var(--accent-pink); border-bottom: 2px solid var(--accent-pink); background: rgba(236,72,153,0.08); }
-    .dossier-body { padding: 14px; overflow-y: auto; flex: 1; }
+    .dossier-tabs { display: flex; border-bottom: 1px solid var(--border-color); background: #04060c; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .dtab { padding: 12px 16px; font-size: 11px; font-weight: 700; color: var(--text-muted); cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+    .dtab.active { color: var(--accent-pink); border-bottom: 2px solid var(--accent-pink); background: rgba(236,72,153,0.12); }
+    .dossier-body { padding: 16px; overflow-y: auto; flex: 1; padding-bottom: 85px; }
 
     .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 11px; }
     @media (max-width: 480px) { .info-grid { grid-template-columns: 1fr; } }
@@ -431,10 +433,14 @@
         align-items: center; justify-content: center;
       }
       .sheet-content, .dossier-box {
-        max-width: 640px;
+        max-width: 680px;
         border-radius: 16px;
-        max-height: 85vh;
+        max-height: 88vh;
         margin: auto;
+        padding-bottom: 24px;
+      }
+      .dossier-body {
+        padding-bottom: 24px;
       }
 
       /* Radar Canvas maior no Desktop */
