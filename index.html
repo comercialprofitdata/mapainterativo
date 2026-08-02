@@ -451,6 +451,10 @@
       <div class="login-title">Mapa Interativo Pro</div>
       <div class="login-sub">Sistema SaaS Comercial & Inteligência de Campo</div>
 
+      <div id="login-error-msg" style="display:none; background:rgba(239,68,68,0.15); border:1px solid #ef4444; color:#fca5a5; padding:10px 12px; border-radius:8px; font-size:12px; margin-bottom:12px; text-align:center; font-weight:600;">
+        ⚠️ Usuário ou senha incorretos. Verifique suas credenciais e tente novamente.
+      </div>
+
       <form id="form-login">
         <div class="login-input-group">
           <label>Usuário *</label>
@@ -1953,16 +1957,27 @@
     }
 
     // Form de Login
+    document.getElementById('login-username').addEventListener('input', () => {
+      const errBox = document.getElementById('login-error-msg');
+      if (errBox) errBox.style.display = 'none';
+    });
+    document.getElementById('login-password').addEventListener('input', () => {
+      const errBox = document.getElementById('login-error-msg');
+      if (errBox) errBox.style.display = 'none';
+    });
+
     document.getElementById('form-login').addEventListener('submit', (e) => {
       e.preventDefault();
       const userVal = document.getElementById('login-username').value.trim();
       const passVal = document.getElementById('login-password').value.trim();
+      const errBox = document.getElementById('login-error-msg');
 
       const found = STATE.users.find(u => 
         (u.username.toLowerCase() === userVal.toLowerCase() || u.id.toLowerCase() === userVal.toLowerCase()) && u.pass === passVal
       );
 
       if (found) {
+        if (errBox) errBox.style.display = 'none';
         STATE.currentUser = found;
         sessionStorage.setItem('MAPA_LOGGED_USER', JSON.stringify(found));
 
@@ -1976,7 +1991,10 @@
         document.getElementById('loading-overlay').style.display = 'flex';
         startLoadingData();
       } else {
-        alert('Usuário ou senha incorretos!\n\nUse:\nUsuário: triunfante | Senha: abc123\nou\nUsuário: TCG | Senha: abc123');
+        if (errBox) {
+          errBox.innerText = '⚠️ Usuário ou senha incorretos. Verifique suas credenciais.';
+          errBox.style.display = 'block';
+        }
       }
     });
 
