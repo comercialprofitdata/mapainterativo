@@ -1,4 +1,4 @@
-const CACHE_NAME = 'visitas-pwa-v111-force-purge';
+const CACHE_NAME = 'visitas-pwa-v112-clean-form-no-popups';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

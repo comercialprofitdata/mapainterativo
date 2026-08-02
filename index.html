@@ -1562,157 +1562,180 @@
 
         <!-- 1. PREPARAÇÃO — Estratégia -->
         <div style="background:#0b1324; border:1px solid #1e293b; border-radius:10px; padding:12px; margin-bottom:12px;">
-          <b style="color:#60a5fa; font-size:12px; display:block; margin-bottom:8px;">1. 🎯 PREPARAÇÃO — Estratégia</b>
+          <b style="color:#60a5fa; font-size:12px; display:block; margin-bottom:10px;">1. 🎯 PREPARAÇÃO — Estratégia</b>
           
-          <div style="margin-bottom:8px;">
-            <label style="font-size:11px; color:#cbd5e1;">• Crédito OK? O cliente pode comprar hoje?</label>
+          <div style="margin-bottom:10px;">
+            <label style="font-size:11px; color:#cbd5e1; font-weight:bold;">• Crédito OK? O cliente pode comprar hoje?</label>
             <div style="display:flex; gap:6px; margin-top:4px;">
-              <select id="vchk-credito" style="width:120px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:4px;">
-                <option value="Sim">✅ Sim (Liberado)</option>
-                <option value="Não">❌ Não (Bloqueado)</option>
-                <option value="Pendente">⚠️ Pendente/Análise</option>
+              <select id="vchk-credito" style="width:110px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:6px;">
+                <option value="Fez">✅ Fez</option>
+                <option value="Não Fez">❌ Não Fez</option>
               </select>
-              <input type="text" id="vchk-credito-obs" placeholder="Obs de crédito..." style="flex:1; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:4px 8px;"/>
+              <input type="text" id="vchk-credito-obs" placeholder="Anotações / Obs (opcional)..." style="flex:1; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:6px 8px;"/>
             </div>
           </div>
 
-          <div style="margin-bottom:8px;">
-            <label style="font-size:11px; color:#cbd5e1;">• Histórico: O que ele deixou de comprar nas últimas visitas?</label>
-            <input type="text" id="vchk-historico" placeholder="Itens que o cliente parou de comprar..." style="width:100%; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:6px; margin-top:4px;"/>
+          <div style="margin-bottom:10px;">
+            <label style="font-size:11px; color:#cbd5e1; font-weight:bold;">• Histórico: O que ele deixou de comprar nas últimas visitas?</label>
+            <div style="display:flex; gap:6px; margin-top:4px;">
+              <select id="vchk-historico-status" style="width:110px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:6px;">
+                <option value="Fez">✅ Fez</option>
+                <option value="Não Fez">❌ Não Fez</option>
+              </select>
+              <input type="text" id="vchk-historico" placeholder="Anotações / Obs (opcional)..." style="flex:1; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:6px 8px;"/>
+            </div>
           </div>
 
           <div>
-            <label style="font-size:11px; color:#cbd5e1;">• Defina o Alvo: Qual é o MIX FOCO para esta loja hoje?</label>
-            <input type="text" id="vchk-mix-foco" placeholder="Produtos foco para vender nesta visita..." style="width:100%; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:6px; margin-top:4px;"/>
+            <label style="font-size:11px; color:#cbd5e1; font-weight:bold;">• Defina o Alvo: Qual é o MIX FOCO para esta loja hoje?</label>
+            <div style="display:flex; gap:6px; margin-top:4px;">
+              <select id="vchk-mix-foco-status" style="width:110px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:6px;">
+                <option value="Fez">✅ Fez</option>
+                <option value="Não Fez">❌ Não Fez</option>
+              </select>
+              <input type="text" id="vchk-mix-foco" placeholder="Anotações / Obs (opcional)..." style="flex:1; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:6px 8px;"/>
+            </div>
           </div>
         </div>
 
         <!-- 2. GÔNDOLA — Mãos à Obra -->
         <div style="background:#0b1324; border:1px solid #1e293b; border-radius:10px; padding:12px; margin-bottom:12px;">
-          <b style="color:#34d399; font-size:12px; display:block; margin-bottom:8px;">2. 🛒 GÔNDOLA — Mãos à Obra</b>
+          <b style="color:#34d399; font-size:12px; display:block; margin-bottom:10px;">2. 🛒 GÔNDOLA — Mãos à Obra</b>
 
-          <div style="margin-bottom:8px;">
-            <label style="font-size:11px; color:#cbd5e1;">• RUPTURA: Identifique e anote o que falta na prateleira</label>
+          <div style="margin-bottom:10px;">
+            <label style="font-size:11px; color:#cbd5e1; font-weight:bold;">• RUPTURA: Identifique e anote o que falta na prateleira</label>
             <div style="display:flex; gap:6px; margin-top:4px;">
-              <select id="vchk-ruptura" style="width:110px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:4px;">
-                <option value="Fez">✅ Fez (Identificou)</option>
-                <option value="Não Fez">❌ Não Fez</option>
-              </select>
-              <input type="text" id="vchk-ruptura-obs" placeholder="Produtos em falta/ruptura..." style="flex:1; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:4px 8px;"/>
-            </div>
-          </div>
-
-          <div style="margin-bottom:8px;">
-            <label style="font-size:11px; color:#cbd5e1;">• EXECUÇÃO: Limpar, Abastecer e Organizar (Layout)</label>
-            <select id="vchk-execucao" style="width:100%; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:6px; margin-top:4px;">
-              <option value="Fez">✅ Fez (Limpou, abasteceu e organizou layout)</option>
-              <option value="Não Fez">❌ Não Fez</option>
-            </select>
-          </div>
-
-          <div style="margin-bottom:8px;">
-            <label style="font-size:11px; color:#cbd5e1;">• CROSS: Montar ponto extra (Ex: Produto A + Produto B)</label>
-            <div style="display:flex; gap:6px; margin-top:4px;">
-              <select id="vchk-cross" style="width:110px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:4px;">
+              <select id="vchk-ruptura" style="width:110px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:6px;">
                 <option value="Fez">✅ Fez</option>
                 <option value="Não Fez">❌ Não Fez</option>
               </select>
-              <input type="text" id="vchk-cross-obs" placeholder="Detalhes do ponto extra/cross..." style="flex:1; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:4px 8px;"/>
+              <input type="text" id="vchk-ruptura-obs" placeholder="Anotações / Obs (opcional)..." style="flex:1; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:6px 8px;"/>
+            </div>
+          </div>
+
+          <div style="margin-bottom:10px;">
+            <label style="font-size:11px; color:#cbd5e1; font-weight:bold;">• EXECUÇÃO: Limpar, Abastecer e Organizar (Layout)</label>
+            <div style="display:flex; gap:6px; margin-top:4px;">
+              <select id="vchk-execucao" style="width:110px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:6px;">
+                <option value="Fez">✅ Fez</option>
+                <option value="Não Fez">❌ Não Fez</option>
+              </select>
+              <input type="text" id="vchk-execucao-obs" placeholder="Anotações / Obs (opcional)..." style="flex:1; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:6px 8px;"/>
+            </div>
+          </div>
+
+          <div style="margin-bottom:10px;">
+            <label style="font-size:11px; color:#cbd5e1; font-weight:bold;">• CROSS: Montar ponto extra (Ex: Produto A + Produto B)</label>
+            <div style="display:flex; gap:6px; margin-top:4px;">
+              <select id="vchk-cross" style="width:110px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:6px;">
+                <option value="Fez">✅ Fez</option>
+                <option value="Não Fez">❌ Não Fez</option>
+              </select>
+              <input type="text" id="vchk-cross-obs" placeholder="Anotações / Obs (opcional)..." style="flex:1; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:6px 8px;"/>
             </div>
           </div>
 
           <div>
-            <label style="font-size:11px; color:#cbd5e1;">• PRÉ-PEDIDO: Monte o pedido ideal</label>
+            <label style="font-size:11px; color:#cbd5e1; font-weight:bold;">• PRÉ-PEDIDO: Monte o pedido ideal</label>
             <div style="display:flex; gap:6px; margin-top:4px;">
-              <select id="vchk-pre-pedido" style="width:110px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:4px;">
+              <select id="vchk-pre-pedido" style="width:110px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:6px;">
                 <option value="Fez">✅ Fez</option>
                 <option value="Não Fez">❌ Não Fez</option>
               </select>
-              <input type="text" id="vchk-pre-pedido-val" placeholder="Valor/Itens do pré-pedido..." style="flex:1; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:4px 8px;"/>
+              <input type="text" id="vchk-pre-pedido-val" placeholder="Anotações / Obs (opcional)..." style="flex:1; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:6px 8px;"/>
             </div>
           </div>
         </div>
 
         <!-- 3. NEGOCIAÇÃO — Frente a Frente -->
         <div style="background:#0b1324; border:1px solid #1e293b; border-radius:10px; padding:12px; margin-bottom:12px;">
-          <b style="color:#fbbf24; font-size:12px; display:block; margin-bottom:8px;">3. 🤝 NEGOCIAÇÃO — Frente a Frente</b>
+          <b style="color:#fbbf24; font-size:12px; display:block; margin-bottom:10px;">3. 🤝 NEGOCIAÇÃO — Frente a Frente</b>
 
-          <div style="margin-bottom:8px;">
-            <label style="font-size:11px; color:#cbd5e1;">• MOSTRE O SERVIÇO: Falou da limpeza/organização realizada?</label>
-            <select id="vchk-mostre-servico" style="width:100%; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:6px; margin-top:4px;">
-              <option value="Fez">✅ Fez (Demonstrou o serviço feito na loja)</option>
-              <option value="Não Fez">❌ Não Fez</option>
-            </select>
-          </div>
-
-          <div style="margin-bottom:8px;">
-            <label style="font-size:11px; color:#cbd5e1;">• PROVE A FALTA: Mostrou a Ruptura ao comprador (Perda de dinheiro)?</label>
-            <select id="vchk-prove-falta" style="width:100%; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:6px; margin-top:4px;">
-              <option value="Fez">✅ Fez (Provou o estoque zerado)</option>
-              <option value="Não Fez">❌ Não Fez</option>
-            </select>
-          </div>
-
-          <div style="margin-bottom:8px;">
-            <label style="font-size:11px; color:#cbd5e1;">• O PEDIDO: Apresentou a reposição + Mix Foco</label>
+          <div style="margin-bottom:10px;">
+            <label style="font-size:11px; color:#cbd5e1; font-weight:bold;">• MOSTRE O SERVIÇO: Comece falando da limpeza/organização que você fez</label>
             <div style="display:flex; gap:6px; margin-top:4px;">
-              <select id="vchk-pedido" style="width:110px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:4px;">
+              <select id="vchk-mostre-servico" style="width:110px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:6px;">
                 <option value="Fez">✅ Fez</option>
                 <option value="Não Fez">❌ Não Fez</option>
               </select>
-              <input type="text" id="vchk-valor-pedido" placeholder="Valor R$ do pedido fechado..." style="flex:1; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:4px 8px;"/>
+              <input type="text" id="vchk-mostre-servico-obs" placeholder="Anotações / Obs (opcional)..." style="flex:1; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:6px 8px;"/>
+            </div>
+          </div>
+
+          <div style="margin-bottom:10px;">
+            <label style="font-size:11px; color:#cbd5e1; font-weight:bold;">• PROVE A FALTA: Mostre a RUPTURA (estoque zerado = perda de dinheiro)</label>
+            <div style="display:flex; gap:6px; margin-top:4px;">
+              <select id="vchk-prove-falta" style="width:110px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:6px;">
+                <option value="Fez">✅ Fez</option>
+                <option value="Não Fez">❌ Não Fez</option>
+              </select>
+              <input type="text" id="vchk-prove-falta-obs" placeholder="Anotações / Obs (opcional)..." style="flex:1; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:6px 8px;"/>
+            </div>
+          </div>
+
+          <div style="margin-bottom:10px;">
+            <label style="font-size:11px; color:#cbd5e1; font-weight:bold;">• O PEDIDO: Apresente a reposição + Mix Foco</label>
+            <div style="display:flex; gap:6px; margin-top:4px;">
+              <select id="vchk-pedido" style="width:110px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:6px;">
+                <option value="Fez">✅ Fez</option>
+                <option value="Não Fez">❌ Não Fez</option>
+              </select>
+              <input type="text" id="vchk-valor-pedido" placeholder="Anotações / Obs (opcional)..." style="flex:1; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:6px 8px;"/>
             </div>
           </div>
 
           <div>
-            <label style="font-size:11px; color:#cbd5e1;">• OBJEÇÕES: Usou argumentos de GIRO e MARGEM?</label>
+            <label style="font-size:11px; color:#cbd5e1; font-weight:bold;">• OBJEÇÕES: Use argumentos de GIRO e MARGEM</label>
             <div style="display:flex; gap:6px; margin-top:4px;">
-              <select id="vchk-objecoes" style="width:110px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:4px;">
+              <select id="vchk-objecoes" style="width:110px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:6px;">
                 <option value="Fez">✅ Fez</option>
                 <option value="Não Fez">❌ Não Fez</option>
               </select>
-              <input type="text" id="vchk-objecoes-obs" placeholder="Objeções e respostas aplicadas..." style="flex:1; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:4px 8px;"/>
+              <input type="text" id="vchk-objecoes-obs" placeholder="Anotações / Obs (opcional)..." style="flex:1; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:6px 8px;"/>
             </div>
           </div>
         </div>
 
         <!-- 4. FECHAMENTO — O Acordo -->
         <div style="background:#0b1324; border:1px solid #1e293b; border-radius:10px; padding:12px; margin-bottom:12px;">
-          <b style="color:#f472b6; font-size:12px; display:block; margin-bottom:8px;">4. 🏁 FECHAMENTO — O Acordo</b>
+          <b style="color:#f472b6; font-size:12px; display:block; margin-bottom:10px;">4. 🏁 FECHAMENTO — O Acordo</b>
 
-          <div style="margin-bottom:8px;">
-            <label style="font-size:11px; color:#cbd5e1;">• CHECK FINAL: Confirme Valor Total, Prazo e DATA DE ENTREGA</label>
+          <div style="margin-bottom:10px;">
+            <label style="font-size:11px; color:#cbd5e1; font-weight:bold;">• CHECK FINAL: Confirme Valor Total, Prazo e DATA DE ENTREGA</label>
             <div style="display:flex; gap:6px; margin-top:4px;">
-              <select id="vchk-check-final" style="width:110px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:4px;">
+              <select id="vchk-check-final" style="width:110px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:6px;">
                 <option value="Fez">✅ Fez</option>
                 <option value="Não Fez">❌ Não Fez</option>
               </select>
-              <input type="text" id="vchk-entrega-prazo" placeholder="Data de entrega e prazo de pagamento..." style="flex:1; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:4px 8px;"/>
+              <input type="text" id="vchk-entrega-prazo" placeholder="Anotações / Obs (opcional)..." style="flex:1; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:6px 8px;"/>
             </div>
           </div>
 
-          <div style="margin-bottom:8px;">
-            <label style="font-size:11px; color:#cbd5e1;">• GATILHO: Já avise o foco da próxima visita</label>
+          <div style="margin-bottom:10px;">
+            <label style="font-size:11px; color:#cbd5e1; font-weight:bold;">• GATILHO: Já avise o foco da próxima visita</label>
             <div style="display:flex; gap:6px; margin-top:4px;">
-              <select id="vchk-gatilho" style="width:110px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:4px;">
+              <select id="vchk-gatilho" style="width:110px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:6px;">
                 <option value="Fez">✅ Fez</option>
                 <option value="Não Fez">❌ Não Fez</option>
               </select>
-              <input type="text" id="vchk-foco-proxima" placeholder="Foco já combinado para próxima visita..." style="flex:1; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:4px 8px;"/>
+              <input type="text" id="vchk-foco-proxima" placeholder="Anotações / Obs (opcional)..." style="flex:1; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:6px 8px;"/>
             </div>
           </div>
 
           <div>
-            <label style="font-size:11px; color:#cbd5e1;">• FINALIZAR: "Posso ajudar em algo mais hoje?"</label>
-            <select id="vchk-finalizar" style="width:100%; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:6px; margin-top:4px;">
-              <option value="Fez">✅ Fez (Perguntou antes de sair)</option>
-              <option value="Não Fez">❌ Não Fez</option>
-            </select>
+            <label style="font-size:11px; color:#cbd5e1; font-weight:bold;">• FINALIZAR: "Posso ajudar em algo mais hoje?"</label>
+            <div style="display:flex; gap:6px; margin-top:4px;">
+              <select id="vchk-finalizar" style="width:110px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:6px; font-size:11px; padding:6px;">
+                <option value="Fez">✅ Fez</option>
+                <option value="Não Fez">❌ Não Fez</option>
+              </select>
+              <input type="text" id="vchk-finalizar-obs" placeholder="Anotações / Obs (opcional)..." style="flex:1; background:#1e293b; border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px; padding:6px 8px;"/>
+            </div>
           </div>
         </div>
 
         <div class="form-group">
-          <label>Resumo / Observações Finais do Supervisor/Vendedor</label>
+          <label>Resumo / Observações Finais da Visita (Opcional)</label>
           <textarea id="vmodal-notes" rows="2" placeholder="Resumo geral das decisões da visita..."></textarea>
         </div>
 
@@ -1962,7 +1985,7 @@
   <script>
     // AUTO-PURGE DE CACHE ANTIGO NO CELULAR (Garante a versão v111 do Checklist)
     (function() {
-      const TAG = 'v111_trade_checklist_4passos';
+      const TAG = 'v112_clean_form_no_popups';
       if (localStorage.getItem('PWA_VER_TAG') !== TAG) {
         localStorage.setItem('PWA_VER_TAG', TAG);
         if ('caches' in window) {
@@ -3862,18 +3885,6 @@
 
       document.getElementById('vmodal-client-id').value = c.id;
       document.getElementById('vmodal-client-name').innerText = `📝 Registrar Visita: ${c.c}`;
-
-      // Pré-preenchimento Inteligente com base no histórico do cliente
-      if (c.lim > 0) {
-        document.getElementById('vchk-credito').value = 'Sim';
-        document.getElementById('vchk-credito-obs').value = `Limite de Crédito Aprovado R$ ${c.lim.toLocaleString('pt-BR')}`;
-      } else {
-        document.getElementById('vchk-credito').value = 'Pendente';
-        document.getElementById('vchk-credito-obs').value = `Limite R$ 0 / Consultar Financeiro`;
-      }
-
-      document.getElementById('vchk-historico').value = `Última compra R$ ${c.vu.toLocaleString('pt-BR')} (${c.du} dias atrás)`;
-      document.getElementById('vchk-mix-foco').value = c.cnae ? `Produtos da linha ${c.cnae.slice(0,30)}` : 'Produtos do Mix Principal';
     };
 
     window.closeVisitModal = function() { document.getElementById('modal-visit').classList.remove('active'); };
@@ -3895,13 +3906,16 @@
         // 1. PREPARAÇÃO
         chkCredito: document.getElementById('vchk-credito').value,
         chkCreditoObs: document.getElementById('vchk-credito-obs').value,
+        chkHistoricoStatus: document.getElementById('vchk-historico-status') ? document.getElementById('vchk-historico-status').value : 'Fez',
         chkHistorico: document.getElementById('vchk-historico').value,
+        chkMixFocoStatus: document.getElementById('vchk-mix-foco-status') ? document.getElementById('vchk-mix-foco-status').value : 'Fez',
         chkMixFoco: document.getElementById('vchk-mix-foco').value,
 
         // 2. GÔNDOLA
         chkRuptura: document.getElementById('vchk-ruptura').value,
         chkRupturaObs: document.getElementById('vchk-ruptura-obs').value,
         chkExecucao: document.getElementById('vchk-execucao').value,
+        chkExecucaoObs: document.getElementById('vchk-execucao-obs') ? document.getElementById('vchk-execucao-obs').value : '',
         chkCross: document.getElementById('vchk-cross').value,
         chkCrossObs: document.getElementById('vchk-cross-obs').value,
         chkPrePedido: document.getElementById('vchk-pre-pedido').value,
@@ -3909,7 +3923,9 @@
 
         // 3. NEGOCIAÇÃO
         chkMostreServico: document.getElementById('vchk-mostre-servico').value,
+        chkMostreServicoObs: document.getElementById('vchk-mostre-servico-obs') ? document.getElementById('vchk-mostre-servico-obs').value : '',
         chkProveFalta: document.getElementById('vchk-prove-falta').value,
+        chkProveFaltaObs: document.getElementById('vchk-prove-falta-obs') ? document.getElementById('vchk-prove-falta-obs').value : '',
         chkPedido: document.getElementById('vchk-pedido').value,
         chkValorPedido: document.getElementById('vchk-valor-pedido').value,
         chkObjecoes: document.getElementById('vchk-objecoes').value,
@@ -3920,19 +3936,16 @@
         chkEntregaPrazo: document.getElementById('vchk-entrega-prazo').value,
         chkGatilho: document.getElementById('vchk-gatilho').value,
         chkFocoProxima: document.getElementById('vchk-foco-proxima').value,
-        chkFinalizar: document.getElementById('vchk-finalizar').value
+        chkFinalizar: document.getElementById('vchk-finalizar').value,
+        chkFinalizarObs: document.getElementById('vchk-finalizar-obs') ? document.getElementById('vchk-finalizar-obs').value : ''
       };
 
       STATE.visitLogs.unshift(log);
       syncVisitLogs();
 
-      alert(`✅ Relatório de Visita salvo com sucesso!\n\nGerando a opção de exportação em PDF...`);
+      alert(`✅ Visita registrada com sucesso!`);
       closeVisitModal();
       renderVisitHistory();
-
-      if (confirm('Deseja baixar e exportar o relatório desta visita em PDF agora para enviar ao vendedor?')) {
-        exportVisitPDF(log.id);
-      }
     });
 
     function renderVisitHistory() {
