@@ -1357,14 +1357,15 @@
 
     <!-- VIEW 6: REGISTRO DE VISITAS -->
     <section id="view-visitas" class="view-panel">
-      <div style="padding:12px; height:100%; overflow-y:auto;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <div style="padding:12px; height:100%; overflow-y:auto; padding-bottom:85px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; background:#0b1324; border:1px solid #1e293b; padding:12px; border-radius:12px;">
           <div>
-            <div style="font-size:14px; font-weight:800; color:#fff;">📝 Registro de Visitas & Pedidos</div>
-            <div style="font-size:10px; color:var(--text-muted);">Histórico de contatos e relatórios de campo</div>
+            <div style="font-size:15px; font-weight:800; color:#fff;">📝 Registrar & Auditar Visitas</div>
+            <div style="font-size:11px; color:var(--accent-purple);">Checklist de 4 passos com relatórios em PDF para vendedores</div>
           </div>
+          <button onclick="openVisitModal()" style="background:linear-gradient(135deg,#8b5cf6,#ec4899); color:#fff; border:none; padding:10px 16px; border-radius:8px; font-size:12px; font-weight:bold; cursor:pointer; box-shadow:0 4px 14px rgba(139,92,246,0.4);">➕ REGISTRAR VISITA</button>
         </div>
-        <div id="visits-history-list"></div>
+        <div id="visit-history-list"></div>
       </div>
     </section>
 
@@ -1528,6 +1529,14 @@
 
       <form id="form-log-visit">
         <input type="hidden" id="vmodal-client-id"/>
+
+        <!-- SELEÇÃO DO CLIENTE / LOJA EM ATENDIMENTO -->
+        <div style="background:#090d16; border:1px solid var(--accent-purple); padding:10px; border-radius:10px; margin-bottom:12px;">
+          <label style="font-size:11px; font-weight:800; color:#c084fc; display:block; margin-bottom:4px;">🏢 Selecione o Cliente / Loja Visitada *</label>
+          <select id="vmodal-client-select" onchange="onVisitClientSelectChange(this.value)" required style="width:100%; background:#1e293b; color:#fff; border:1px solid #475569; border-radius:6px; font-size:12px; padding:8px; font-weight:bold;">
+            <option value="">-- Selecione o Cliente da Sua Lista ou Região --</option>
+          </select>
+        </div>
 
         <!-- DADOS GERAIS -->
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
@@ -3788,14 +3797,64 @@
       box.innerHTML = html;
     }
 
-    // ── MODAL VISITAS ──
+    // ── MODAL VISITAS & REGISTRO DE PERGUNTAS DE CAMPO ──
     window.openVisitModal = function(id) {
-      const c = STATE.rawClients.find(x => x.id == id);
-      if (!c) return;
-      document.getElementById('vmodal-client-id').value = c.id;
-      document.getElementById('vmodal-client-name').innerText = `📝 Visita: ${c.c}`;
+      document.getElementById('form-log-visit').reset();
+
+      // Popula o Dropdown de Clientes (Ordenado por proximidade GPS)
+      const selectEl = document.getElementById('vmodal-client-select');
+      let selectHtml = '<option value="">-- Selecione o Cliente Sendo Visitado --</option>';
+
+      let clientList = STATE.rawClients.slice(0, 1500);
+      if (STATE.userPos) {
+        clientList.sort((a, b) => {
+          const dA = (a.lt !== null) ? haversineDistance(STATE.userPos.lat, STATE.userPos.lng, a.lt, a.lg) : 9999;
+          const dB = (b.lt !== null) ? haversineDistance(STATE.userPos.lat, STATE.userPos.lng, b.lt, b.lg) : 9999;
+          return dA - dB;
+        });
+      }
+
+      clientList.forEach(c => {
+        const distStr = (STATE.userPos && c.lt !== null) ? ` (${formatDistance(haversineDistance(STATE.userPos.lat, STATE.userPos.lng, c.lt, c.lg))})` : '';
+        selectHtml += `<option value="${c.id}">${c.c} · CNPJ ${c.j} · ${c.m}/${c.u}${distStr}</option>`;
+      });
+      selectEl.innerHTML = selectHtml;
+
+      // Se passou id explícito (ex: clicou num pino no mapa)
+      if (id) {
+        selectEl.value = id;
+        onVisitClientSelectChange(id);
+      } else if (clientList.length > 0 && STATE.userPos) {
+        // Auto-seleciona o cliente mais próximo do GPS se não passou id
+        const closest = clientList[0];
+        selectEl.value = closest.id;
+        onVisitClientSelectChange(closest.id);
+      }
+
       document.getElementById('modal-visit').classList.add('active');
     };
+
+    window.onVisitClientSelectChange = function(id) {
+      if (!id) return;
+      const c = STATE.rawClients.find(x => x.id == id);
+      if (!c) return;
+
+      document.getElementById('vmodal-client-id').value = c.id;
+      document.getElementById('vmodal-client-name').innerText = `📝 Registrar Visita: ${c.c}`;
+
+      // Pré-preenchimento Inteligente com base no histórico do cliente
+      if (c.lim > 0) {
+        document.getElementById('vchk-credito').value = 'Sim';
+        document.getElementById('vchk-credito-obs').value = `Limite de Crédito Aprovado R$ ${c.lim.toLocaleString('pt-BR')}`;
+      } else {
+        document.getElementById('vchk-credito').value = 'Pendente';
+        document.getElementById('vchk-credito-obs').value = `Limite R$ 0 / Consultar Financeiro`;
+      }
+
+      document.getElementById('vchk-historico').value = `Última compra R$ ${c.vu.toLocaleString('pt-BR')} (${c.du} dias atrás)`;
+      document.getElementById('vchk-mix-foco').value = c.cnae ? `Produtos da linha ${c.cnae.slice(0,30)}` : 'Produtos do Mix Principal';
+    };
+
     window.closeVisitModal = function() { document.getElementById('modal-visit').classList.remove('active'); };
 
     document.getElementById('form-log-visit').addEventListener('submit', (e) => {
