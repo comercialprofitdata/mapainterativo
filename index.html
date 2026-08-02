@@ -1960,6 +1960,27 @@
   <script src="clientes_part3.js"></script>
   <!-- LÓGICA PRINCIPAL DO APP -->
   <script>
+    // AUTO-PURGE DE CACHE ANTIGO NO CELULAR (Garante a versão v111 do Checklist)
+    (function() {
+      const TAG = 'v111_trade_checklist_4passos';
+      if (localStorage.getItem('PWA_VER_TAG') !== TAG) {
+        localStorage.setItem('PWA_VER_TAG', TAG);
+        if ('caches' in window) {
+          caches.keys().then(names => Promise.all(names.map(name => caches.delete(name))))
+            .then(() => {
+              if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(regs => {
+                  for (let r of regs) r.unregister();
+                  window.location.reload(true);
+                });
+              } else {
+                window.location.reload(true);
+              }
+            });
+        }
+      }
+    })();
+
     const DEFAULT_USERS = [
       { id: 'triunfante', username: 'triunfante', pass: 'abc123', name: 'Diretoria Triunfante (Master)', scope: 'BRASIL', filial: '', role: 'admin', mods: ['map','list','radar','dashboard','photos','visitas','google','admin'] },
       { id: 'TCG', username: 'TCG', pass: 'abc123', name: 'Vendedor TCG (Filial TCG)', scope: 'FILIAL', filial: 'TCG', role: 'vendedor', mods: ['map','list','radar','dashboard','photos','visitas','google'] }
