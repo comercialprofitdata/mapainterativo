@@ -1,4 +1,4 @@
-const CACHE_NAME = 'visitas-pwa-v106-offline';
+const CACHE_NAME = 'visitas-pwa-v107-offline';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -33,6 +33,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         keyList.map((key) => {
           if (key !== CACHE_NAME) {
+            console.log('[SW] Apagando cache antigo:', key);
             return caches.delete(key);
           }
         })
@@ -41,32 +42,39 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Cache-First with Background Stale-While-Revalidate
+// Network-First para index.html (Navegação) / Cache-First para Assets Estáticos
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        // Tenta atualizar em background se online
-        fetch(event.request).then(networkResponse => {
-          if (networkResponse && networkResponse.status === 200) {
-            caches.open(CACHE_NAME).then(cache => cache.put(event.request, networkResponse));
-          }
-        }).catch(() => {});
-        return cachedResponse;
-      }
+  const isNavigation = event.request.mode === 'navigate' || event.request.url.includes('index.html') || event.request.url === self.location.origin + '/';
 
-      return fetch(event.request).then(networkResponse => {
+  if (isNavigation) {
+    // Network-First: Tenta a rede primeiro para garantir a versão sem erros de sintaxe!
+    event.respondWith(
+      fetch(event.request).then(networkResponse => {
         if (networkResponse && networkResponse.status === 200) {
           const copy = networkResponse.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
         }
         return networkResponse;
       }).catch(() => {
-        if (event.request.mode === 'navigate') {
-          return caches.match('./index.html') || caches.match('./');
+        // Se estiver offline, retorna index.html do cache
+        return caches.match('./index.html') || caches.match('./');
+      })
+    );
+    return;
+  }
+
+  // Cache-First para arquivos JS/CSS estáticos de alta performance
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      if (cachedResponse) return cachedResponse;
+      return fetch(event.request).then(networkResponse => {
+        if (networkResponse && networkResponse.status === 200) {
+          const copy = networkResponse.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
         }
+        return networkResponse;
       });
     })
   );
